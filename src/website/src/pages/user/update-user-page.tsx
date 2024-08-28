@@ -154,10 +154,9 @@ export default function UpdateUserPage({ userId }: UpdateUserPageProps) {
                     <div className="col-span-2">
                         <Select value={role} onValueChange={(v) => setRole(v as Role)}  >
                             <SelectTrigger id="source">
-                                        <Button className="w-full flex  flex-row gap-10" onClick={() => mutate()}>
-                                        <SelectValue placeholder="Select" />
-                                    </SelectTrigger>
-                                    <SelectContent position="popper">
+                                <SelectValue placeholder="Select" />
+                            </SelectTrigger>
+                            <SelectContent position="popper">
                                 {
                                     RoleList.map(value => (
                                         <SelectItem key={value} value={value}>{RoleTranslate[value]}</SelectItem>
@@ -169,6 +168,7 @@ export default function UpdateUserPage({ userId }: UpdateUserPageProps) {
                 </div>
             </CardContent>
             <CardFooter>
+                <Button className="w-full flex flex-row gap-10" onClick={() => mutate()}>
                     {
                         isPending ?
                             <div className="h-6 w-6 animate-spin rounded-full border-4 border-gray-400 border-t-secondary" />
