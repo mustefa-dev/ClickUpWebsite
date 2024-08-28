@@ -1,0 +1,82 @@
+.checkedBtn-wrapper {
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    /* border: 1px solid hsl(var(--primary)); */
+    /* filter: drop-shadow(0px 1px 2px #f1e5e5); */
+    /*     
+    box-shadow: 8px 2px 19px -10px rgba(242, 28, 28, 1);
+    -webkit-box-shadow: 8px 2px 19px -10px rgba(242, 28, 28, 1);
+    -moz-box-shadow: 8px 2px 19px -10px rgba(242, 28, 28, 1); */
+    width: 100%;
+    height: 100%;
+    border-radius: 0.375rem;
+    overflow: hidden;
+    transition-duration: 300ms;
+    background-color: hsl(var(--secondary));
+}
+
+.checkedBtn-wrapper p {
+
+    width: 70%;
+    background-color: hsl(var(--secondary));
+    padding: 0.35rem;
+    font-size: large;
+    text-align: start;
+    overflow: hidden;
+    border-inline-end: 2px solid gray;
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 300ms;
+    animation-duration: 300ms;
+}
+
+.animation-wrapper {
+    position: relative;
+    width: 30%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+[data-checked="true"] p {
+    background-color: hsl(var(--customGreen));
+    color: white;
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+}
+
+.squre {
+    position: absolute;
+    padding-inline: 10px;
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 2px solid gray;
+    border-radius: 4px;
+    border-width: 2px;
+}
+
+[data-checked="true"] .squre {
+    transform: translateY(50px);
+    transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+
+[data-checked="false"] .squre {
+    transform: translateY(0px);
+    transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+
+[data-checked="true"] .icon-wrapper {
+    transform: translateY(0px);
+    transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+
+}
+
+[data-checked="false"] .icon-wrapper {
+    transform: translateY(-50px);
+    transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}

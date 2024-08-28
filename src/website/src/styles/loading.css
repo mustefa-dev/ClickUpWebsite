@@ -1,0 +1,145 @@
+.loader-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    /* transform: translate(-50%, -50%); */
+}
+
+.squiggle {
+    stroke-dashoffset: 0;
+    stroke-dasharray: 650;
+    animation: draw 1.6s linear infinite;
+    filter: drop-shadow(0px 0px 15px #e7353c);
+}
+
+@keyframes draw {
+    0% {
+        stroke-dashoffset: 1300;
+    }
+
+    50% {
+        stroke-dashoffset: 650;
+    }
+
+    100% {
+        stroke-dashoffset: 0;
+    }
+}
+
+
+.reloading {
+    animation: unset;
+}
+
+.reload-squiggle-container {
+    padding: 15px;
+}
+
+.reload-squiggle {
+    stroke-dasharray: 650;
+    stroke-dashoffset: 0;
+    filter: drop-shadow(0px 0px 15px #e7353c);
+}
+
+.reloading .reload-squiggle {
+    animation: reload-draw 1s linear infinite;
+}
+
+@keyframes reload-draw {
+    0% {
+        stroke-dashoffset: 1950;
+    }
+
+    50% {
+        stroke-dashoffset: 1300;
+    }
+
+    100% {
+        stroke-dashoffset: 650;
+    }
+}
+
+.focus-me .sale-card {
+    isolation: isolate;
+    z-index: 333;
+}
+
+.focus-me .colp {
+    max-height: 300px;
+    padding: 10px;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.focus-me .un-colp {
+    max-height: 0 !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    scale: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none;
+}
+
+.overlay-blur::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1 !important;
+    backdrop-filter: var(--blur);
+    background-color: #1f1d2baa;
+    background-color: #1f1d2bf0;
+    animation: fade-in-blur 0.3s ease-out;
+}
+
+.overlay-blur-out::before {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+    animation: fade-out-blur 0.2s ease-in;
+}
+
+@keyframes fade-in-blur {
+    0% {
+        opacity: 0;
+        backdrop-filter: blur(0px);
+    }
+
+    100% {
+        opacity: 1;
+        backdrop-filter: var(--blur);
+    }
+}
+
+@keyframes fade-out-blur {
+    0% {
+        opacity: 1;
+        backdrop-filter: var(--blur);
+    }
+
+    100% {
+        opacity: 0;
+        backdrop-filter: blur(0px);
+    }
+}
+
+/* HTML: <div class="loader"></div> */
+.loader {
+    width: 50px;
+    padding: 10px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: #25b09b;
+    --_m:
+        conic-gradient(#0000 10%, #000),
+        linear-gradient(#000 0 0) content-box;
+    -webkit-mask: var(--_m);
+    mask: var(--_m);
+    -webkit-mask-composite: source-out;
+    mask-composite: subtract;
+    animation: l3 1s infinite linear;
+}
+
+@keyframes l3 {
+    to {
+        transform: rotate(1turn)
+    }
+}
