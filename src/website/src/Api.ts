@@ -2,7 +2,7 @@ import axios, { AxiosError } from "axios";
 import { AuthStore } from "@/utils/authStore";
 import { decodeJwt } from "jose";
 
-const URL = import.meta.env.VITE_BASE_URL === undefined ? "https://tuki-api.gandalf.morabaa.com" : import.meta.env.VITE_BASE_URL
+const URL = import.meta.env.VITE_BASE_URL === undefined ? "http://192.168.124.137:5194" : import.meta.env.VITE_BASE_URL
 
 
 export const ApiConf = {

@@ -1,40 +1,38 @@
-import React from "react";
-import { HiOutlineCog, HiOutlineUser } from "react-icons/hi";
+// src/components/Sidebar.tsx
+import { X } from "lucide-react";
+import { Button } from "./ui/button";
 import { Link } from "react-router-dom";
 
 interface SidebarProps {
     isOpen: boolean;
+    onClose: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
-    const direction = document.documentElement.getAttribute("dir") || "ltr";
+function Sidebar({ isOpen, onClose }: SidebarProps) {
+    const handleLinkClick = () => {
+        onClose();
+    };
 
     return (
-        <div
-            className={`fixed inset-y-0 ${direction === "ltr" ? "left-0" : "right-0"} transform ${
-                isOpen ? "translate-x-0" : direction === "ltr" ? "-translate-x-full" : "translate-x-full"
-            } transition-transform duration-300 bg-secondary text-gray-200 h-screen w-64 shadow-lg z-40 custom-border`}
-        >
-            <div className="flex flex-col h-full">
-                {/* Header */}
-                <div className="p-4 mt-16 border-b border-gray-700 bg-secondary">
-                    <h2 className="text-2xl font-bold text-gray-100"></h2>
-                </div>
-
-                {/* Menu Items */}
-                <ul className="flex-1">
-                    <li className="flex items-center p-4 border-b border-gray-700 hover:bg-gray-700 transition-colors duration-200 rounded-md">
-                        <HiOutlineCog className="mr-3 text-xl text-gray-400" />
-                        <Link to="/" className="text-lg font-medium text-gray-100">الشركات</Link>
+        <div className={`fixed top-0 right-0 h-full w-32 bg-secondary shadow-lg border-l border-gray-200 ${isOpen ? "translate-x-0" : "translate-x-full"}`}>
+            <div className="p-4 flex justify-between items-center border-b border-gray-200">
+                <p className="text-2xl font-semibold text-primary">Sidebar</p>
+                <Button variant="ghost" onClick={onClose} aria-label="Close sidebar">
+                    <X className="h-6 w-6 text-primary" />
+                </Button>
+            </div>
+            <div className="p-4 border border-gray-200 rounded-md">
+                <ul className="space-y-4">
+                    <li className="border-b border-gray-200 pb-2">
+                        <Link to="/sections" className="text-lg font-medium text-primary hover:text-accent transition-colors" onClick={handleLinkClick}>الأقسام</Link>
                     </li>
-                    <li className="flex items-center p-4 border-b border-gray-700 hover:bg-gray-700 transition-colors duration-200 rounded-md">
-                        <HiOutlineUser className="mr-3 text-xl text-gray-400" />
-                        <Link to="/users" className="text-lg font-medium text-gray-100">المستخدمين</Link>
+                    <li className="pt-2">
+                        <Link to="/users" className="text-lg font-medium text-primary hover:text-accent transition-colors" onClick={handleLinkClick}>المستخدمين</Link>
                     </li>
                 </ul>
             </div>
         </div>
     );
-};
+}
 
 export default Sidebar;

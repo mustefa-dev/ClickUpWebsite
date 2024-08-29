@@ -1,4 +1,3 @@
-// src/pages/user/users-page.tsx
 import { Api } from "@/Api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,16 +6,16 @@ import User, { RoleTranslate } from "@/types/user";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
-import { Link, useNavigate } from "react-router-dom";
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
-} from "@/components/ui/tooltip"
+} from "@/components/ui/tooltip";
 import { Filter, FilterX, Edit, Trash } from "lucide-react";
 import CustomDialog from "@/components/Dialog";
 import UpdateUserPage from "@/pages/user/update-user-page";
+import AddUserPage from "@/pages/user/add-user-page";
 
 export default function UsersPage() {
     const { ref, inView } = useInView();
@@ -24,8 +23,8 @@ export default function UsersPage() {
     const [includeDeleted, setIncludeDeleted] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
     const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-    const navigate = useNavigate();
 
     const fetchUsers = async (page: number): Promise<User[]> => {
         const pageSize = 10;
@@ -36,13 +35,13 @@ export default function UsersPage() {
                 skip: skip,
                 limit: limit,
                 query: search,
-                includeDeleted: includeDeleted
-            }
+                includeDeleted: includeDeleted,
+            },
         });
         return data;
     };
 
-    const { data, status, error, refetch } = useQuery({
+    const { data, status, refetch } = useQuery({
         queryKey: ["users", search, includeDeleted, currentPage],
         queryFn: () => fetchUsers(currentPage),
         keepPreviousData: true,
@@ -74,66 +73,93 @@ export default function UsersPage() {
         }
     };
 
+    const handleAddUser = () => {
+        setIsAddUserDialogOpen(true);
+    };
+
     return (
-        <div className="p-5  bg-secondary">
-            <div className="mb-4 flex justify-between items-center">
+        <div className="p-5 bg-secondary">
+            <div className="mb-4 flex flex-col md:flex-row justify-between items-center">
                 <Input
                     placeholder="بحث..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     className="w-full md:w-[30%] p-2 border border-gray-300 rounded-md"
                 />
-                <Button onClick={() => setIncludeDeleted(!includeDeleted)} variant="outline">
-                    {
-                        includeDeleted ?
+                <div className="flex space-x-2 mt-2 md:mt-0">
+                    <Button onClick={() => setIncludeDeleted(!includeDeleted)} variant="outline">
+                        {includeDeleted ? (
                             <TooltipProvider>
                                 <Tooltip>
-                                    <TooltipTrigger><Filter /></TooltipTrigger>
+                                    <TooltipTrigger asChild>
+                                        <span>
+                                            <Filter />
+                                        </span>
+                                    </TooltipTrigger>
                                     <TooltipContent>
                                         <p>اخفاء المستخدمين المحذوفين</p>
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
-                            :
+                        ) : (
                             <TooltipProvider>
                                 <Tooltip>
-                                    <TooltipTrigger><FilterX /></TooltipTrigger>
+                                    <TooltipTrigger asChild>
+                                        <span>
+                                            <FilterX />
+                                        </span>
+                                    </TooltipTrigger>
                                     <TooltipContent>
                                         <p>إظهار المستخدمين المحذوفين</p>
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
-                    }
-                </Button>
-                <Link to={`/users/add`}>
-                    <Button variant="outline" className="border-green-500">
+                        )}
+                    </Button>
+                    <Button variant="outline" className="border-green-500" onClick={handleAddUser}>
                         إضافة مستخدم
                     </Button>
-                </Link>
+                </div>
             </div>
 
-            <div className="overflow-hidden">
+            <div className="overflow-x-auto">
                 <table className="min-w-full bg-white dark:bg-secondary shadow-md rounded-lg">
                     <thead className="bg-gradient-to-r from-gray-100 to-gray-300 dark:from-secondary dark:to-gray-800 border-b-4 border-gray-300 shadow-md">
                     <tr>
-                        <th className="px-6 py-4 text-start font-bold text-sm text-gray-700 dark:text-gray-300">اسم المستخدم</th>
-                        <th className="px-6 py-4 text-start font-bold text-sm text-gray-700 dark:text-gray-300">نوع المستخدم</th>
-                        <th className="px-6 py-4 text-start font-bold text-sm text-gray-700 dark:text-gray-300">رقم الهاتف</th>
-                        <th className="px-6 py-4 text-start font-bold text-sm text-gray-700 dark:text-gray-300">إجراءات</th>
+                        <th className="px-6 py-4 text-start font-bold text-sm text-gray-700 dark:text-gray-300">
+                            اسم المستخدم
+                        </th>
+                        <th className="px-6 py-4 text-start font-bold text-sm text-gray-700 dark:text-gray-300">
+                            نوع المستخدم
+                        </th>
+                        <th className="px-6 py-4 text-start font-bold text-sm text-gray-700 dark:text-gray-300">
+                            رقم الهاتف
+                        </th>
+                        <th className="px-6 py-4 text-start font-bold text-sm text-gray-700 dark:text-gray-300">
+                            إجراءات
+                        </th>
                     </tr>
                     </thead>
                     <tbody>
                     {status === "loading" && (
                         <tr>
-                            <td colSpan={4} className="text-center py-4">Loading...</td>
+                            <td colSpan={4} className="text-center py-4">
+                                Loading...
+                            </td>
                         </tr>
                     )}
                     {data && data.length > 0 ? (
                         data.map((user) => (
                             <tr key={user.id} className="border-t hover:bg-gray-50 dark:hover:bg-gray-700">
-                                <td className="px-6 py-4 text-sm text-gray-800 dark:text-gray-200">{user.username}</td>
-                                <td className="px-6 py-4 text-sm text-gray-800 dark:text-gray-200">{RoleTranslate[user.role]}</td>
-                                <td className="px-6 py-4 text-sm text-gray-800 dark:text-gray-200">{user.phoneNumber}</td>
+                                <td className="px-6 py-4 text-sm text-gray-800 dark:text-gray-200">
+                                    {user.username}
+                                </td>
+                                <td className="px-6 py-4 text-sm text-gray-800 dark:text-gray-200">
+                                    {RoleTranslate[user.role]}
+                                </td>
+                                <td className="px-6 py-4 text-sm text-gray-800 dark:text-gray-200">
+                                    {user.phoneNumber}
+                                </td>
                                 <td className="px-6 py-4 flex space-x-3">
                                     <Button onClick={() => handleEdit(user.id)} variant="outline" size="sm">
                                         <Edit className="h-4 w-4" />
@@ -146,7 +172,9 @@ export default function UsersPage() {
                         ))
                     ) : (
                         <tr>
-                            <td colSpan={4} className="text-center py-4">No data found.</td>
+                            <td colSpan={4} className="text-center py-4">
+                                No data found.
+                            </td>
                         </tr>
                     )}
                     </tbody>
@@ -170,6 +198,37 @@ export default function UsersPage() {
                     <UpdateUserPage userId={selectedUserId} />
                 </CustomDialog>
             )}
+
+            {isAddUserDialogOpen && (
+                <CustomDialog
+                    isOpen={isAddUserDialogOpen}
+                    onClose={() => setIsAddUserDialogOpen(false)}
+                    title="Add User"
+                >
+                    <AddUserPage />
+                </CustomDialog>
+            )}
+
+
+            <div className="flex justify-center" ref={ref}>
+                {status === "loading" ? "loading..." : ""}
+            </div>
+
+            {selectedUserId && (
+                <CustomDialog isOpen={isDialogOpen} onClose={() => setIsDialogOpen(false)} title="Update User">
+                    <UpdateUserPage userId={selectedUserId} />
+                </CustomDialog>
+            )}
+
+            {isAddUserDialogOpen && (
+                <CustomDialog
+                    isOpen={isAddUserDialogOpen}
+                    onClose={() => setIsAddUserDialogOpen(false)}
+                    title="Add User"
+                >
+                    <AddUserPage  />
+                </CustomDialog>
+            )}
         </div>
-    )
+    );
 }

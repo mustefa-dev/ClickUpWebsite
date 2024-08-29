@@ -1,28 +1,28 @@
 // src/layout/main-layout.tsx
 import Header from "@/components/Header";
+import Sidebar from "@/components/Sidebar";
 import { ErrorBoundary } from "react-error-boundary";
 import { Outlet } from "react-router-dom";
-import { useState, useCallback } from "react";
-import Sidebar from "@/components/Sidebar";
+import { useState } from "react";
 
 const MainLayout = () => {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-    const direction = document.documentElement.getAttribute("dir") || "ltr";
+    const [isSidebarOpen, setSidebarOpen] = useState(false);
 
-    const toggleSidebar = useCallback(() => {
-        setIsSidebarOpen(prevState => !prevState);
-    }, []);
+    const toggleSidebar = () => {
+        setSidebarOpen((prev) => !prev);
+    };
+
+    const closeSidebar = () => {
+        setSidebarOpen(false);
+    };
 
     return (
-        <div className="flex min-h-screen flex-col bg-background">
+        <div className={`flex min-h-screen flex-col bg-background ${isSidebarOpen ? "mr-32" : ""}`}>
             <header className="fixed left-0 right-0 top-0 z-50 h-16 bg-secondary text-secondary-foreground">
-                <Header
-                    isSidebarOpen={isSidebarOpen}
-                    toggleSidebar={toggleSidebar}
-                />
+                <Header toggleSidebar={toggleSidebar} />
             </header>
-            <Sidebar isOpen={isSidebarOpen} />
-            <div className={`flex-1 flex flex-col transition-margin duration-300 ${isSidebarOpen ? (direction === "ltr" ? "ml-64" : "mr-64") : ""}`}>
+            <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
+            <div className="flex-1 flex flex-col">
                 <ErrorBoundary
                     fallback={
                         <p className="h-full py-40 text-center text-xl">

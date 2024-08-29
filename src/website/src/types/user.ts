@@ -16,4 +16,5 @@ export default interface User {
     address: string;
     isDeleted: boolean;
     role: Role;
+    sectionId: string;
 }
