@@ -8,10 +8,10 @@ namespace TicketSystem.Api.Files.UploadFile;
 
 public sealed class UploadFileEndpoint : Endpoint<UploadMediaRequest, Ulid[]>
 {
-    private readonly BuildifyDbContext _context;
+    private readonly TicketDbContext _context;
     private readonly IFileSaver _fileSaver;
 
-    public UploadFileEndpoint(BuildifyDbContext context, IFileSaver fileSaver)
+    public UploadFileEndpoint(TicketDbContext context, IFileSaver fileSaver)
     {
         _context = context;
         _fileSaver = fileSaver;

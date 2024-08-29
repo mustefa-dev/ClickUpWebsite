@@ -13,4 +13,6 @@ public class AddUserRequest
     public string? Email { get; set; }
     public string? Address { get; set; }
     public Role Role { get; set; } = Role.User;
+    public Ulid SectionId { get; set; }
+
 }

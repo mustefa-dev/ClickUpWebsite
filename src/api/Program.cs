@@ -20,7 +20,7 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddCors(opts => opts.AddDefaultPolicy(x => x.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin()));
 
-builder.Services.AddDbContext<BuildifyDbContext>(opts =>
+builder.Services.AddDbContext<TicketDbContext>(opts =>
 {
     opts.UseNpgsql(
         builder.Configuration.GetConnectionString("PostgreConnection")
@@ -89,7 +89,7 @@ app.Use(async (context, next) =>
 );
 
 using var scope = app.Services.CreateAsyncScope();
-using var context = scope.ServiceProvider.GetRequiredService<BuildifyDbContext>();
+using var context = scope.ServiceProvider.GetRequiredService<TicketDbContext>();
 context.Database.Migrate();
 await app.InitAuthAsync(builder.Configuration);
 

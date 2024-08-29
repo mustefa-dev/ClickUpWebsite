@@ -8,8 +8,8 @@ namespace TicketSystem.Api.Auth.Services;
 public class AddAdminsService 
 {
     private readonly IHasher _hasher;
-    private readonly BuildifyDbContext _context;
-    public AddAdminsService(BuildifyDbContext context, IHasher hasher, JwtService jwtService, IMapper mapper) 
+    private readonly TicketDbContext _context;
+    public AddAdminsService(TicketDbContext context, IHasher hasher, JwtService jwtService, IMapper mapper) 
     {
         _context = context;
         _hasher = hasher;
@@ -26,7 +26,6 @@ public class AddAdminsService
             {
                 Id = Ulid.NewUlid(),
                 FirstName = x.FirstName,
-                LastName = x.LastName,
                 Username = x.Username,
                 Password = _hasher.Hash(x.Password),
                 Role = Role.Admin,

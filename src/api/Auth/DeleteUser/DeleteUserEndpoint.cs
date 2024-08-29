@@ -8,9 +8,9 @@ namespace TicketSystem.Api.Auth.DeleteUser;
 
 public class DeleteUserEndpoint : EndpointWithoutRequest
 {
-    private readonly BuildifyDbContext _context;
+    private readonly TicketDbContext _context;
 
-    public DeleteUserEndpoint(BuildifyDbContext context)
+    public DeleteUserEndpoint(TicketDbContext context)
     {
         _context = context;
     }

@@ -14,7 +14,7 @@ public class UserInfoInjectorMiddleware
     }
 
 
-    public async Task InvokeAsync(HttpContext httpContext, BuildifyDbContext dbContext)
+    public async Task InvokeAsync(HttpContext httpContext, TicketDbContext dbContext)
     {
         var userId = GetUserId(httpContext);
         if (userId is null)

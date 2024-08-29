@@ -9,7 +9,7 @@ using TicketSystem.Api.Data;
 
 namespace TicketSystem.Api.Auth.RefreshToken;
 
-public sealed class RefreshTokenEndpoint(BuildifyDbContext context, JwtService jwtService, AutoMapper.IMapper mapper) : Endpoint<RefreshTokensRequest, LoginResponse>
+public sealed class RefreshTokenEndpoint(TicketDbContext context, JwtService jwtService, AutoMapper.IMapper mapper) : Endpoint<RefreshTokensRequest, LoginResponse>
 {
     public override void Configure()
     {
