@@ -90,8 +90,10 @@ export default function UsersPage() {
                     {includeDeleted ? (
                         <TooltipProvider>
                             <Tooltip>
-                                <TooltipTrigger>
-                                    <Filter />
+                                <TooltipTrigger asChild>
+                                    <span>
+                                        <Filter />
+                                    </span>
                                 </TooltipTrigger>
                                 <TooltipContent>
                                     <p>اخفاء المستخدمين المحذوفين</p>
@@ -101,8 +103,10 @@ export default function UsersPage() {
                     ) : (
                         <TooltipProvider>
                             <Tooltip>
-                                <TooltipTrigger>
-                                    <FilterX />
+                                <TooltipTrigger asChild>
+                                    <span>
+                                        <FilterX />
+                                    </span>
                                 </TooltipTrigger>
                                 <TooltipContent>
                                     <p>إظهار المستخدمين المحذوفين</p>
@@ -199,7 +203,7 @@ export default function UsersPage() {
                     onClose={() => setIsAddUserDialogOpen(false)}
                     title="Add User"
                 >
-                    <AddUserPage isOpen={isAddUserDialogOpen} onClose={() => setIsAddUserDialogOpen(false)} />
+                    <AddUserPage  />
                 </CustomDialog>
             )}
         </div>
