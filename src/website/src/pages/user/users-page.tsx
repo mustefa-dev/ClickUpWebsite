@@ -79,48 +79,50 @@ export default function UsersPage() {
 
     return (
         <div className="p-5 bg-secondary">
-            <div className="mb-4 flex justify-between items-center">
+            <div className="mb-4 flex flex-col md:flex-row justify-between items-center">
                 <Input
                     placeholder="بحث..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     className="w-full md:w-[30%] p-2 border border-gray-300 rounded-md"
                 />
-                <Button onClick={() => setIncludeDeleted(!includeDeleted)} variant="outline">
-                    {includeDeleted ? (
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <span>
-                                        <Filter />
-                                    </span>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>اخفاء المستخدمين المحذوفين</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    ) : (
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <span>
-                                        <FilterX />
-                                    </span>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>إظهار المستخدمين المحذوفين</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    )}
-                </Button>
-                <Button variant="outline" className="border-green-500" onClick={handleAddUser}>
-                    إضافة مستخدم
-                </Button>
+                <div className="flex space-x-2 mt-2 md:mt-0">
+                    <Button onClick={() => setIncludeDeleted(!includeDeleted)} variant="outline">
+                        {includeDeleted ? (
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <span>
+                                            <Filter />
+                                        </span>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>اخفاء المستخدمين المحذوفين</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        ) : (
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <span>
+                                            <FilterX />
+                                        </span>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>إظهار المستخدمين المحذوفين</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        )}
+                    </Button>
+                    <Button variant="outline" className="border-green-500" onClick={handleAddUser}>
+                        إضافة مستخدم
+                    </Button>
+                </div>
             </div>
 
-            <div className="overflow-hidden">
+            <div className="overflow-x-auto">
                 <table className="min-w-full bg-white dark:bg-secondary shadow-md rounded-lg">
                     <thead className="bg-gradient-to-r from-gray-100 to-gray-300 dark:from-secondary dark:to-gray-800 border-b-4 border-gray-300 shadow-md">
                     <tr>
@@ -187,6 +189,27 @@ export default function UsersPage() {
                     Next
                 </Button>
             </div>
+            <div className="flex justify-center" ref={ref}>
+                {status === "loading" ? "loading..." : ""}
+            </div>
+
+            {selectedUserId && (
+                <CustomDialog isOpen={isDialogOpen} onClose={() => setIsDialogOpen(false)} title="Update User">
+                    <UpdateUserPage userId={selectedUserId} />
+                </CustomDialog>
+            )}
+
+            {isAddUserDialogOpen && (
+                <CustomDialog
+                    isOpen={isAddUserDialogOpen}
+                    onClose={() => setIsAddUserDialogOpen(false)}
+                    title="Add User"
+                >
+                    <AddUserPage />
+                </CustomDialog>
+            )}
+
+
             <div className="flex justify-center" ref={ref}>
                 {status === "loading" ? "loading..." : ""}
             </div>
