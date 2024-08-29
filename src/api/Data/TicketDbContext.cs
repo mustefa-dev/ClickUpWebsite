@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace TicketSystem.Api.Data;
 
-public partial class BuildifyDbContext : DbContext
+public partial class TicketDbContext : DbContext
 {
-    public BuildifyDbContext(DbContextOptions options) : base(options)
+    public TicketDbContext(DbContextOptions options) : base(options)
     {
         AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
         AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
@@ -14,6 +14,6 @@ public partial class BuildifyDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(BuildifyDbContext).Assembly);
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(TicketDbContext).Assembly);
     }
 }

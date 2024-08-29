@@ -9,10 +9,10 @@ namespace TicketSystem.Api.Auth.FindUser;
 
 public class FindUserEndpoint : EndpointWithoutRequest<UserResponse>
 {
-    private readonly BuildifyDbContext _context;
+    private readonly TicketDbContext _context;
     private readonly AutoMapper.IMapper _mapper;
 
-    public FindUserEndpoint(BuildifyDbContext context, AutoMapper.IMapper mapper)
+    public FindUserEndpoint(TicketDbContext context, AutoMapper.IMapper mapper)
     {
         _context = context;
         _mapper = mapper;

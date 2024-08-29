@@ -8,10 +8,10 @@ namespace TicketSystem.Api.Files.UploadFile;
 
 public sealed class FindMediaEndpoint : EndpointWithoutRequest<Media>
 {
-    private readonly BuildifyDbContext _context;
+    private readonly TicketDbContext _context;
     private readonly IOptions<LocalFileSaverOptions> _options;
 
-    public FindMediaEndpoint(BuildifyDbContext context, IOptions<LocalFileSaverOptions> options)
+    public FindMediaEndpoint(TicketDbContext context, IOptions<LocalFileSaverOptions> options)
     {
         _context = context;
         _options = options;

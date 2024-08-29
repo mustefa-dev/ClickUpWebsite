@@ -9,7 +9,7 @@ using TicketSystem.Api.Common;
 using TicketSystem.Api.Data;
 using IMapper = AutoMapper.IMapper;
 namespace TicketSystem.Api.Auth.AddUser;
-public class AddUserEndpoint(BuildifyDbContext context, IMapper mapper, IHasher hasher) : Endpoint<AddUserRequest, UserResponse>
+public class AddUserEndpoint(TicketDbContext context, IMapper mapper, IHasher hasher) : Endpoint<AddUserRequest, UserResponse>
 {
     public override void Configure()
     {

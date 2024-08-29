@@ -9,10 +9,10 @@ namespace TicketSystem.Api.MediaFiles.MediaDetails;
 
 public class MediaDetailsEndpoint : EndpointWithoutRequest<MediaDetailsResponse>
 {
-    private readonly BuildifyDbContext _context;
+    private readonly TicketDbContext _context;
     private readonly IOptions<LocalFileSaverOptions> _options;
 
-    public MediaDetailsEndpoint(BuildifyDbContext context, IOptions<LocalFileSaverOptions> options)
+    public MediaDetailsEndpoint(TicketDbContext context, IOptions<LocalFileSaverOptions> options)
     {
         _context = context;
         _options = options;

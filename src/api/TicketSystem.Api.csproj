@@ -24,4 +24,8 @@
     <PackageReference Include="Vogen" Version="3.0.20" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Data\Migrations\" />
+  </ItemGroup>
+
 </Project>

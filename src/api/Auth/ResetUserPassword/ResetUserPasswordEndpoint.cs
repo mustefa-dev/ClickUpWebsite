@@ -12,11 +12,11 @@ namespace TicketSystem.Api.Auth.ResetUserPassword;
 
 public class ResetUserPasswordEndpoint : Endpoint<ResetUserPasswordRequest, UserResponse>
 {
-    private readonly BuildifyDbContext _context;
+    private readonly TicketDbContext _context;
     private readonly AutoMapper.IMapper _mapper;
     private readonly IHasher _hasher;
 
-    public ResetUserPasswordEndpoint(AutoMapper.IMapper mapper, BuildifyDbContext context, IHasher hasher)
+    public ResetUserPasswordEndpoint(AutoMapper.IMapper mapper, TicketDbContext context, IHasher hasher)
     {
         _mapper = mapper;
         _context = context;

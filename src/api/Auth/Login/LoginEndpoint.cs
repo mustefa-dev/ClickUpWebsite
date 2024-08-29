@@ -9,7 +9,7 @@ using TicketSystem.Api.Data;
 
 namespace TicketSystem.Api.Auth.Login;
 
-public sealed class LoginEndpoint(BuildifyDbContext context, IHasher hasher,AutoMapper.IMapper mapper, JwtService jwtService) : Endpoint<LoginRequest, LoginResponse>
+public sealed class LoginEndpoint(TicketDbContext context, IHasher hasher,AutoMapper.IMapper mapper, JwtService jwtService) : Endpoint<LoginRequest, LoginResponse>
 {
     public override void Configure()
     {

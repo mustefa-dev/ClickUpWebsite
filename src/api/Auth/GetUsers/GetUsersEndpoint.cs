@@ -10,10 +10,10 @@ namespace TicketSystem.Api.Auth.GetUsers;
 
 public class GetUsersEndpoint : Endpoint<GetUsersQuery, List<UserResponse>>
 {
-    private readonly BuildifyDbContext _context;
+    private readonly TicketDbContext _context;
     private readonly AutoMapper.IMapper _mapper;
 
-    public GetUsersEndpoint(BuildifyDbContext context, AutoMapper.IMapper mapper)
+    public GetUsersEndpoint(TicketDbContext context, AutoMapper.IMapper mapper)
     {
         _context = context;
         _mapper = mapper;

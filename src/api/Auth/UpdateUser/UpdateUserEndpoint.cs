@@ -11,11 +11,11 @@ namespace TicketSystem.Api.Auth.UpdateUser;
 
 public class UpdateUserEndpoint : Endpoint<UpdateUserRequest, UserResponse>
 {
-    private readonly BuildifyDbContext _context;
+    private readonly TicketDbContext _context;
     private readonly AutoMapper.IMapper _mapper;
     private readonly IHasher _hasher;
 
-    public UpdateUserEndpoint(BuildifyDbContext context, AutoMapper.IMapper mapper, IHasher hasher)
+    public UpdateUserEndpoint(TicketDbContext context, AutoMapper.IMapper mapper, IHasher hasher)
     {
         _context = context;
         _mapper = mapper;
