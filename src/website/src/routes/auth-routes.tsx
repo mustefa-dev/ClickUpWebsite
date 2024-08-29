@@ -9,6 +9,7 @@ import UserPage from "@/pages/user/user-page";
 import UsersPage from "@/pages/user/users-page";
 import React from "react";
 import { Navigate ,Route, Routes } from "react-router-dom";
+import SectionUsersPage from "@/pages/section/section-users-page";
 
 const AuthRoutes = () => {
     return (
@@ -21,7 +22,8 @@ const AuthRoutes = () => {
                     <Route path="/companies/:id/update" element={<UpdateCompanyPage /> } />
                     <Route path="/users" element={<UsersPage />} />
                     <Route path="/user/:id" element={<UserPage /> } />
-                    <Route path="/users/add" element={<AddUserPage /> } /> 
+                    <Route path="/sections/:sectionId/users" element={<SectionUsersPage />} />
+                    <Route path="/users/add" element={<AddUserPage /> } />
                     <Route path="/users/:id/update" element={<UpdateUserPage /> } />
                 </Route>
                 <Route path="*" element={<Navigate to="/" />} />

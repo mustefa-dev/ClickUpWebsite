@@ -1,32 +1,37 @@
+// src/website/src/pages/home/home-page.tsx
 import { Api } from "@/Api";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/cn";
-import { Company, SubscriptionStatusTranslate } from "@/types/company";
+import { Section } from "@/types/section";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
 import { useNavigate } from "react-router-dom";
-import { FaSort, FaEdit, FaTrash } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash } from "lucide-react";
+import { FaEdit, FaTrash, FaFolder } from "react-icons/fa";
+import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import AddSectionPage from "@/pages/section/add-section-page";
 
 const HomePage = () => {
     const { ref, inView } = useInView();
     const [searchQuery, setSearchQuery] = useState("");
     const [sortConfig, setSortConfig] = useState({ key: "", direction: "asc" });
+    const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [selectedSection, setSelectedSection] = useState<Section | null>(null);
     const navigate = useNavigate();
 
-    const fetchCompanies = async ({ pageParam }): Promise<Company[]> => {
+    const fetchSections = async ({ pageParam = 1 }): Promise<Section[]> => {
         const pageSize = 10;
         const skip = (pageParam - 1) * pageSize;
-        const { data } = await Api.get<Company[]>("companies", { params: { skip, limit: pageSize } });
+        const { data } = await Api.get<Section[]>("sections", { params: { skip, limit: pageSize } });
         return data;
     };
 
     const { data, status, fetchNextPage, isFetchingNextPage, hasNextPage } = useInfiniteQuery({
-        queryKey: ["companies"],
-        queryFn: fetchCompanies,
+        queryKey: ["sections"],
+        queryFn: fetchSections,
         initialPageParam: 1,
         getNextPageParam: (lastPage, allPages) => lastPage.length ? allPages.length + 1 : undefined,
     });
@@ -49,27 +54,46 @@ const HomePage = () => {
         return sorted;
     };
 
-    const filteredData = sortedData().filter(company => company.name.toLowerCase().includes(searchQuery.toLowerCase()));
+    const filteredData = sortedData().filter(section => section.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
     useEffect(() => {
         if (inView && hasNextPage) fetchNextPage();
     }, [inView, hasNextPage, fetchNextPage]);
 
-    //const handleEdit  make it open UpdateCompanyPage
-    const handleEdit = (companyId: string) => {
-        navigate(`/companies/${companyId}/update`);
+    const handleEdit = (section: Section) => {
+        setSelectedSection(section);
+        setIsEditDialogOpen(true);
     };
 
+    const handleDelete = (section: Section) => {
+        setSelectedSection(section);
+        setIsDeleteDialogOpen(true);
+    };
 
-    const handleDelete = async (companyId: string) => {
-        if (window.confirm("Are you sure you want to delete this company?")) {
-            await Api.delete(`companies/${companyId}`);
+    const confirmDelete = async () => {
+        if (selectedSection) {
+            await Api.delete(`sections/${selectedSection.id}`);
             fetchNextPage();
+            setIsDeleteDialogOpen(false);
+        }
+    };
+
+    const handleUpdate = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (selectedSection) {
+            try {
+                await Api.patch(`sections/${selectedSection.id}`, { name: selectedSection.name });
+                fetchNextPage();
+                setIsEditDialogOpen(false);
+                window.location.reload();
+            } catch (err) {
+                console.error("Error updating section:", err);
+            }
         }
     };
 
     return (
-        <div className="p-5 h-screen bg-secondary">
+        <div className="p-5 h-screen bg-secondary rtl">
             <div className="mb-4 flex justify-between items-center">
                 <Input
                     placeholder="بحث..."
@@ -77,83 +101,82 @@ const HomePage = () => {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full md:w-[30%] p-2 border border-gray-300 rounded-md"
                 />
+                <Button onClick={() => setIsAddDialogOpen(true)} className="bg-blue-500 text-white p-2 rounded-md">
+                    إضافة قسم
+                </Button>
             </div>
 
-            <div className="overflow-hidden">
-                <table className="min-w-full bg-white dark:bg-secondary shadow-md rounded-lg">
-                    <thead className="bg-gradient-to-r from-gray-100 to-gray-300 dark:from-secondary dark:to-gray-800 border-b-4 border-gray-300 shadow-md">
-                    <tr>
-                        <th className="px-6 py-4 text-start font-bold text-sm text-gray-700 dark:text-gray-300 cursor-pointer" onClick={() => handleSort("name")}>
-                            <div className="flex items-center">
-                                <span className="flex-grow text-start">اسم الشركة</span>
-                                <FaSort className="text-sm" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {status === "loading" && (
+                    <div className="col-span-full text-center py-4">جار التحميل...</div>
+                )}
+                {filteredData.length > 0 ? (
+                    filteredData.map((section) => (
+                        <div
+                            key={section.id}
+                            className="bg-white dark:bg-secondary shadow-md rounded-lg p-4 border-r-4 border-blue-500 cursor-pointer"
+                            onClick={() => navigate(`/sections/${section.id}/users`)}
+                        >
+                            <div className="flex items-center mb-2">
+                                <FaFolder className="text-blue-500 ml-2" />
+                                <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200">{section.name}</h3>
                             </div>
-                        </th>
-                        <th className="px-6 py-4 text-start font-bold text-sm text-gray-700 dark:text-gray-300 cursor-pointer" onClick={() => handleSort("subscriptionInfo.status")}>
-                            <div className="flex items-center">
-                                <span className="flex-grow text-start">حالة الإشتراك</span>
-                                <FaSort className="text-sm" />
+                            <p className="text-sm text-gray-600 dark:text-gray-400">{format(new Date(section.creationDate), "yyyy/MM/dd")}</p>
+                            <div className="flex space-x-3 mt-4">
+                                <Button variant="outline" onClick={(e) => { e.stopPropagation(); handleEdit(section); }}>
+                                    <FaEdit className="h-4 w-4 text-green-500" /> تعديل
+                                </Button>
+                                <Button variant="outline" onClick={(e) => { e.stopPropagation(); handleDelete(section); }}>
+                                    <FaTrash className="h-4 w-4 text-red-500" /> حذف
+                                </Button>
                             </div>
-                        </th>
-                        <th className="px-6 py-4 text-start font-bold text-sm text-gray-700 dark:text-gray-300 cursor-pointer" onClick={() => handleSort("subscriptionInfo.subscriptionStartDate")}>
-                            <div className="flex items-center">
-                                <span className="flex-grow text-start">تاريخ البدء</span>
-                                <FaSort className="text-sm" />
-                            </div>
-                        </th>
-                        <th className="px-6 py-4 text-start font-bold text-sm text-gray-700 dark:text-gray-300 cursor-pointer" onClick={() => handleSort("subscriptionInfo.subscriptionEndDate")}>
-                            <div className="flex items-center">
-                                <span className="flex-grow text-start">تاريخ الانتهاء</span>
-                                <FaSort className="text-sm" />
-                            </div>
-                        </th>
-                        <th className="px-6 py-4 text-start font-bold text-sm text-gray-700 dark:text-gray-300">إجراءات</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {status === "loading" && (
-                        <tr>
-                            <td colSpan={5} className="text-center py-4">Loading...</td>
-                        </tr>
-                    )}
-                    {filteredData.length > 0 ? (
-                        filteredData.map((company) => (
-                            <tr key={company.id} className="border-t hover:bg-gray-50 dark:hover:bg-gray-700">
-                                <td className="px-6 py-4 text-sm text-gray-800 dark:text-gray-200">{company.name}</td>
-                                <td className="px-6 py-4 text-sm text-gray-800 dark:text-gray-200">
-                                        <span className={cn("text-xs font-semibold px-2.5 py-0.5 rounded", {
-                                            "text-green-700 bg-green-100 dark:text-green-200 dark:bg-green-800": company.subscriptionInfo.status === "Active",
-                                            "text-red-700 bg-red-100 dark:text-red-200 dark:bg-red-800": company.subscriptionInfo.status === "Disabled",
-                                            "text-yellow-700 bg-yellow-100 dark:text-yellow-200 dark:bg-yellow-800": company.subscriptionInfo.status === "Expired",
-                                            "text-blue-700 bg-blue-100 dark:text-blue-200 dark:bg-blue-800": company.subscriptionInfo.status === "NotActiveYet",
-                                        })}>
-                                            {SubscriptionStatusTranslate[company.subscriptionInfo.status]}
-                                        </span>
-                                </td>
-                                <td className="px-6 py-4 text-sm text-gray-800 dark:text-gray-200">{format(company.subscriptionInfo.subscriptionStartDate, "yyyy/MM/dd")}</td>
-                                <td className="px-6 py-4 text-sm text-gray-800 dark:text-gray-200">{format(company.subscriptionInfo.subscriptionEndDate, "yyyy/MM/dd")}</td>
-                                <td className="px-6 py-4 flex space-x-3">
-                                    <Button variant="outline" onClick={() => handleEdit(company.id)}>
-                                        <Edit className="h-4 w-4" />
-                                    </Button>
-                                    <Button variant="outline" onClick={() => handleDelete(company.id)}>
-                                        <Trash className="h-4 w-4" />
-                                    </Button>
-                                </td>
-                            </tr>
-                        ))
-                    ) : (
-                        <tr>
-                            <td colSpan={5} className="text-center py-4">No data found.</td>
-                        </tr>
-                    )}
-                    </tbody>
-                </table>
+                        </div>
+                    ))
+                ) : (
+                    <div className="col-span-full text-center py-4">لا توجد بيانات.</div>
+                )}
             </div>
 
             <div className="flex justify-center" ref={ref}>
-                {isFetchingNextPage ? "Loading..." : ""}
+                {isFetchingNextPage ? "جار التحميل..." : ""}
             </div>
+
+            <AddSectionPage isOpen={isAddDialogOpen} onClose={() => setIsAddDialogOpen(false)} />
+
+            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>تعديل القسم</DialogTitle>
+                        <DialogDescription>قم بتحديث اسم القسم أدناه.</DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleUpdate}>
+                        <Input
+                            type="text"
+                            placeholder="اسم القسم"
+                            value={selectedSection?.name || ""}
+                            onChange={(e) => setSelectedSection({ ...selectedSection, name: e.target.value })}
+                            className="w-full p-2 border border-gray-300 rounded-md"
+                            required
+                        />
+                        <DialogFooter>
+                            <Button type="submit" className="bg-blue-500 text-white p-2 rounded-md">تحديث</Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>حذف القسم</DialogTitle>
+                        <DialogDescription>هل أنت متأكد أنك تريد حذف هذا القسم؟</DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button onClick={confirmDelete} className="bg-red-500 text-white p-2 rounded-md">حذف</Button>
+                        <Button onClick={() => setIsDeleteDialogOpen(false)} className="bg-gray-500 text-white p-2 rounded-md">إلغاء</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };

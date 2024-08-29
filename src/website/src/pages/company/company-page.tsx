@@ -28,6 +28,7 @@ export default function CompanyPage() {
     }
 
     return (
+
         <div>
             <div className="mt-8 flex flex-row gap-4 justify-between">
                 <Button onClick={() => navigate(-1)} variant="outline" size="sm">

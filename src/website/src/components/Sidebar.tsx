@@ -16,16 +16,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
             } transition-transform duration-300 bg-secondary text-gray-200 h-screen w-64 shadow-lg z-40 custom-border`}
         >
             <div className="flex flex-col h-full">
-                {/* Header */}
                 <div className="p-4 mt-16 border-b border-gray-700 bg-secondary">
                     <h2 className="text-2xl font-bold text-gray-100"></h2>
                 </div>
 
-                {/* Menu Items */}
                 <ul className="flex-1">
                     <li className="flex items-center p-4 border-b border-gray-700 hover:bg-gray-700 transition-colors duration-200 rounded-md">
                         <HiOutlineCog className="mr-3 text-xl text-gray-400" />
-                        <Link to="/" className="text-lg font-medium text-gray-100">الشركات</Link>
+                        <Link to="/" className="text-lg font-medium text-gray-100">الاقسام</Link>
                     </li>
                     <li className="flex items-center p-4 border-b border-gray-700 hover:bg-gray-700 transition-colors duration-200 rounded-md">
                         <HiOutlineUser className="mr-3 text-xl text-gray-400" />
