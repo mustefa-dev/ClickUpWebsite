@@ -1,152 +1,94 @@
-// src/pages/user/add-user-page.tsx
-import { Api } from "@/Api";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowRightIcon } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import User, { Role, RoleList, RoleTranslate } from "@/types/user";
-import { useState } from "react";
+// src/website/src/pages/user/add-user-page.tsx
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
-import { Label } from "@/components/ui/label";
+import { Api } from "@/Api";
 import { Input } from "@/components/ui/input";
-import { useMutation } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { RoleList, RoleTranslate } from "@/types/user";
+import { Section } from "@/types/section";
 
-export default function AddUserPage() {
-    const navigate = useNavigate();
-    const [firstName, setFirstName] = useState("");
-    const [lastName, setLastName] = useState("");
+const AddUserPage = () => {
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
-    const [address, setAddress] = useState("");
     const [phoneNumber, setPhoneNumber] = useState("");
+    const [address, setAddress] = useState("");
     const [password, setPassword] = useState("");
-    const [role, setRole] = useState<Role>("User");
+    const [role, setRole] = useState("");
+    const [sectionId, setSectionId] = useState(""); // Changed to sectionId
+    const [sections, setSections] = useState<Section[]>([]);
+    const [isPending, setIsPending] = useState(false);
+    const navigate = useNavigate();
 
-    const { mutate, isPending } = useMutation({
-        mutationKey: ["addUser"],
-        mutationFn: async () => {
-            if (username === "") {
-                toast.error("اسم المستخدم مطلوب");
-                return;
-            }
-            if (firstName === "") {
-                toast.error("الاسم الاول مطلوب");
-                return;
-            }
+    useEffect(() => {
+        const fetchSections = async () => {
+            const { data } = await Api.get<Section[]>("sections");
+            setSections(data);
+        };
+        fetchSections();
+    }, []);
 
-            const payload = {
-                firstName,
-                lastName,
-                username,
-                email,
-                address,
-                phoneNumber,
-                password,
-                role,
-            };
-            await Api.post<User>("users", payload);
-        },
-        onSuccess: () => {
-            toast.success("تم إضافة المستخدم");
-            navigate(-1);
-        },
-        onError: (err) => {
-            toast.error(err.message || "حدث خطأ");
-        },
-    });
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsPending(true);
+        try {
+            await Api.post("users", { username, email, phoneNumber, address, password, role, sectionId }); // Changed to sectionId
+            window.location.reload();
+        } catch (error) {
+            console.error("Error adding user:", error);
+        } finally {
+            setIsPending(false);
+        }
+    };
 
     return (
-        <Card className="mx-auto max-w-md mt-20">
-            <CardHeader>
-                <CardTitle className="text-2xl flex flex-row gap-7">
-                    إضافة مستخدم
-                </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <div className="space-y-2">
-                    <Label>الاسم الاول</Label>
-                    <Input
-                        placeholder="الاسم الاول..."
-                        value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
-                    />
-                </div>
-                <div className="space-y-2">
-                    <Label>الاسم الثاني</Label>
-                    <Input
-                        placeholder="الاسم الثاني..."
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                    />
-                </div>
-                <div className="space-y-2">
-                    <Label>اسم المستخدم</Label>
-                    <Input
-                        placeholder="اسم المستخدم..."
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                    />
-                </div>
-                <div className="space-y-2">
-                    <Label>الايميل</Label>
-                    <Input
-                        placeholder="الايميل..."
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                    />
-                </div>
-                <div className="space-y-2">
-                    <Label>الهاتف</Label>
-                    <Input
-                        placeholder="الهاتف..."
-                        value={phoneNumber}
-                        onChange={(e) => setPhoneNumber(e.target.value)}
-                    />
-                </div>
-                <div className="space-y-2">
-                    <Label>الموقع</Label>
-                    <Input
-                        placeholder="الموقع..."
-                        value={address}
-                        onChange={(e) => setAddress(e.target.value)}
-                    />
-                </div>
-                <div className="space-y-2">
-                    <Label>الباسوورد</Label>
-                    <Input
-                        placeholder="الباسوورد..."
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                    />
-                </div>
-                <div className="space-y-2">
-                    <Label>نوع المستخدم</Label>
-                    <div className="col-span-2">
-                        <Select value={role} onValueChange={(v) => setRole(v as Role)}>
-                            <SelectTrigger id="role">
-                                <SelectValue placeholder="Select" />
-                            </SelectTrigger>
-                            <SelectContent position="popper">
-                                {RoleList.map((value) => (
-                                    <SelectItem key={value} value={value}>
-                                        {RoleTranslate[value]}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
-            </CardContent>
-            <CardFooter>
-                <Button className="w-full flex flex-row gap-10" onClick={() => mutate()}>
-                    {isPending ? (
-                        <div className="h-6 w-6 animate-spin rounded-full border-4 border-gray-400 border-t-secondary" />
-                    ) : (
-                        "إضافة المستخدم"
-                    )}
+        <div className="p-5 bg-secondary">
+            <form onSubmit={handleSubmit}>
+                <Input
+                    type="text"
+                    placeholder="اسم المستخدم"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required
+                />
+
+                <Input
+                    type="password"
+                    placeholder="كلمة المرور"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                />
+                <Select onValueChange={setRole} value={role} required>
+                    <SelectTrigger>
+                        <SelectValue placeholder="اختر نوع المستخدم" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {RoleList.map((value) => (
+                            <SelectItem key={value} value={value}>
+                                {RoleTranslate[value]}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                <Select onValueChange={setSectionId} value={sectionId} required> {/* Changed to setSectionId */}
+                    <SelectTrigger>
+                        <SelectValue placeholder="اختر القسم" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {sections.map((section) => (
+                            <SelectItem key={section.id} value={section.id}>
+                                {section.name}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                <Button type="submit" disabled={isPending}>
+                    {isPending ? "جارٍ الإضافة..." : "إضافة المستخدم"}
                 </Button>
-            </CardFooter>
-        </Card>
+            </form>
+        </div>
     );
-}
+};
+
+export default AddUserPage;
