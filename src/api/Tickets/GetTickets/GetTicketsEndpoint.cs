@@ -27,13 +27,14 @@ public class GetTicketsEndpoint : Endpoint<GetTicketsQuery, List<TicketResponse>
 
     public override async Task HandleAsync(GetTicketsQuery query, CancellationToken ct)
     {
-        var ticketsQuery = _context.Tickets.AsQueryable();
+        var ticketsQuery = _context.Tickets
+            .Where(t => !t.IsDeleted)
+            .AsQueryable();
 
         if (query.CurrentStatus.HasValue)
         {
             ticketsQuery = ticketsQuery.Where(t => t.CurrentStatus == query.CurrentStatus.Value);
         }
-        
 
         var tickets = await ticketsQuery.ToListAsync(ct);
         var response = _mapper.Map<List<TicketResponse>>(tickets);

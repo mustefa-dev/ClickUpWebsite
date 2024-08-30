@@ -8,14 +8,18 @@ import { Edit, Trash } from "lucide-react";
 import CustomDialog from "@/components/Dialog";
 import UpdateTicketPage from "@/pages/ticket/update-ticket";
 import AddTicketPage from "@/pages/ticket/add-ticket";
+import { useParams } from "react-router-dom";
+import { AuthStore } from "@/utils/authStore";
+import {FaCheckCircle, FaTimesCircle} from "react-icons/fa";
 
 export default function MyTicketPage() {
+    const { id } = useParams<{ id: string }>();
     const { ref, inView } = useInView();
     const [search, setSearch] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isAddTicketDialogOpen, setIsAddTicketDialogOpen] = useState(false);
-    const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
+    const [selectedTicketId, setSelectedTicketId] = useState<string | null>(id || null);
 
     const fetchMyTickets = async (page: number): Promise<any[]> => {
         const pageSize = 10;
@@ -51,9 +55,31 @@ export default function MyTicketPage() {
         setCurrentPage((prev) => Math.max(prev - 1, 1));
     };
 
-    const handleEdit = (ticketId: string) => {
-        setSelectedTicketId(ticketId);
-        setIsDialogOpen(true);
+    const handleEdit = async (ticketId: string, currentStatus: string) => {
+        const newStatus = currentStatus === "Solved" ? "InProgress" : "Solved";
+        try {
+            const token = AuthStore.getAccessToken();
+            if (!token) {
+                throw new Error("No access token found");
+            }
+
+            const response = await Api.patch(`tickets/status/${ticketId}`, {
+                newStatus
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.status === 200) {
+                refetch();
+            } else {
+                console.error("Failed to update ticket status");
+            }
+        } catch (error) {
+            console.error("Error updating ticket status:", error);
+        }
     };
 
     const handleDelete = async (ticketId: string) => {
@@ -122,13 +148,20 @@ export default function MyTicketPage() {
                                     {new Date(ticket.lastUpdated).toLocaleDateString()}
                                 </td>
                                 <td className="px-6 py-4 flex space-x-3">
-                                    <Button onClick={() => handleEdit(ticket.ticketNumber)} variant="outline" size="sm">
-                                        <Edit className="h-4 w-4" />
-                                    </Button>
-                                    <Button onClick={() => handleDelete(ticket.ticketNumber)} variant="outline" size="sm">
-                                        <Trash className="h-4 w-4" />
+                                    <Button
+                                        onClick={() => handleEdit(ticket.id, ticket.currentStatus)}
+                                        variant="outline"
+                                        size="sm"
+                                        className={ticket.currentStatus === "Solved" ? "bg-green-500 text-white" : "bg-red-500 text-white"}
+                                    >
+                                        {ticket.currentStatus === "Solved" ? (
+                                            <FaCheckCircle className="h-4 w-4"/>
+                                        ) : (
+                                            <FaTimesCircle className="h-4 w-4"/>
+                                        )}
                                     </Button>
                                 </td>
+
                             </tr>
                         ))
                     ) : (

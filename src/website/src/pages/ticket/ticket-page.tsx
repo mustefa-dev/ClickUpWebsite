@@ -1,22 +1,14 @@
-// src/pages/ticket/ticket-page.tsx
 import { Api } from "@/Api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/cn";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Filter, FilterX, Edit, Trash } from "lucide-react";
 import CustomDialog from "@/components/Dialog";
 import UpdateTicketPage from "@/pages/ticket/update-ticket";
 import AddTicketPage from "@/pages/ticket/add-ticket";
 import { useParams } from "react-router-dom";
+import { Edit, Trash } from "lucide-react";
 
 export default function TicketPage() {
     const { id } = useParams<{ id: string }>();
@@ -67,9 +59,11 @@ export default function TicketPage() {
     };
 
     const handleDelete = async (ticketId: string) => {
-        if (window.confirm("هل أنت متأكد أنك تريد حذف هذه التذكرة؟")) {
+        try {
             await Api.delete(`tickets/${ticketId}`);
             refetch();
+        } catch (err) {
+            console.error("Error deleting ticket:", err);
         }
     };
 
@@ -121,7 +115,7 @@ export default function TicketPage() {
                     )}
                     {data && data.length > 0 ? (
                         data.map((ticket) => (
-                            <tr key={ticket.ticketId} className="border-t hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <tr key={ticket.id} className="border-t hover:bg-gray-50 dark:hover:bg-gray-700">
                                 <td className="px-6 py-4 text-sm text-gray-800 dark:text-gray-200">
                                     {ticket.ticketTitle}
                                 </td>
@@ -132,10 +126,10 @@ export default function TicketPage() {
                                     {new Date(ticket.lastUpdated).toLocaleDateString()}
                                 </td>
                                 <td className="px-6 py-4 flex space-x-3">
-                                    <Button onClick={() => handleEdit(ticket.ticketId)} variant="outline" size="sm">
+                                    <Button onClick={() => handleEdit(ticket.id)} variant="outline" size="sm">
                                         <Edit className="h-4 w-4" />
                                     </Button>
-                                    <Button onClick={() => handleDelete(ticket.ticketId)} variant="outline" size="sm">
+                                    <Button onClick={() => handleDelete(ticket.id)} variant="outline" size="sm">
                                         <Trash className="h-4 w-4" />
                                     </Button>
                                 </td>

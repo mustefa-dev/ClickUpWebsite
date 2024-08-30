@@ -10,6 +10,7 @@ export const TicketStatusTranslate = {
 };
 
 export interface Ticket {
+    id: string;
     ticketTitle: string;
     currentStatus: TicketStatus;
     creatorId: string;
@@ -19,4 +20,5 @@ export interface Ticket {
     ticketNumber: number;
     creator: User;
     assignedUser: User;
+    creationDate: string;
 }

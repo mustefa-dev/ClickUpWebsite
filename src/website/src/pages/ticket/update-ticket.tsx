@@ -1,113 +1,122 @@
+// src/pages/ticket/update-ticket-page.tsx
 import { Api } from "@/Api";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { AuthStore } from "@/utils/authStore";
+import uploadMedia from "@/utils/uploadMedia";
 
 interface UpdateTicketPageProps {
     ticketId: string;
 }
 
 export default function UpdateTicketPage({ ticketId }: UpdateTicketPageProps) {
+    const [ticketTitle, setTicketTitle] = useState("");
+    const [imageGallery, setImageGallery] = useState<string[]>([]);
+    const [isPending, setIsPending] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
-    const [title, setTitle] = useState("");
-    const [description, setDescription] = useState("");
-    const [status, setStatus] = useState("Open");
-
-    const fetchTicket = async (): Promise<any> => {
-        const { data } = await Api.get(`tickets/${ticketId}`);
-        return data;
-    }
-
-    const { data, status: queryStatus } = useQuery({
-        queryKey: ["tickets", ticketId],
-        queryFn: fetchTicket,
-    });
 
     useEffect(() => {
-        if (data !== undefined) {
-            setTitle(data.title);
-            setDescription(data.description);
-            setStatus(data.status);
+        const fetchTicket = async () => {
+            try {
+                const response = await Api.get(`tickets/${ticketId}`);
+                setTicketTitle(response.data.title);
+                setImageGallery(response.data.imageGallery || []);
+            } catch (err) {
+                setError("Failed to fetch ticket. Please try again.");
+                console.error("Error fetching ticket:", err);
+            }
+        };
+        if (ticketId) {
+            fetchTicket();
+        } else {
+            setError("Ticket ID is not defined.");
         }
-    }, [data, queryStatus]);
+    }, [ticketId]);
 
-    const { mutate, isPending } = useMutation({
-        mutationKey: ["tickets", ticketId],
-        mutationFn: async () => {
-            if (title === "") {
-                toast.error("Title is required");
-                return;
-            }
-            if (description === "") {
-                toast.error("Description is required");
-                return;
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsPending(true);
+        try {
+            const token = AuthStore.getAccessToken();
+            if (!token) {
+                throw new Error("No access token found");
             }
 
-            const payload = {
-                newStatus: status
-            };
-            await Api.patch(`tickets/status/${ticketId}`, payload);
-        },
-        onSuccess: () => {
-            toast.success("Ticket updated successfully");
-            navigate(-1);
-        },
-        onError: (err) => {
-            toast.error(err.message || "An error occurred");
-        },
-    });
+            const response = await fetch(`http://192.168.23.137:5194/tickets/${ticketId}`, {
+                method: 'PATCH',
+                headers: {
+                    'accept': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    ticketTitle: ticketTitle,
+                    imageGallery: imageGallery
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error("Error response:", errorData);
+                throw new Error(`Request failed with status ${response.status}`);
+            }
+
+            toast.success("Ticket updated successfully!");
+            navigate("/tickets");
+        } catch (error) {
+            toast.error("Failed to update ticket.");
+            console.error("Error updating ticket:", error);
+        } finally {
+            setIsPending(false);
+        }
+    };
+
+    const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        try {
+            const uploadedUrls = await Promise.all(files.map(file => uploadMedia(file)));
+            setImageGallery(uploadedUrls.flat());
+        } catch (error) {
+            console.error("Error uploading images:", error);
+            toast.error("Failed to upload images.");
+        }
+    };
+
+    if (error) {
+        return <div className="text-red-500">{error}</div>;
+    }
 
     return (
         <Card className="mx-auto max-w-md mt-20">
-            <CardHeader>
-                <CardTitle className="text-2xl">Update Ticket</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <div className="space-y-2">
-                    <Label>Title</Label>
+            <form onSubmit={handleSubmit}>
+                <CardContent className="space-y-4">
+                    <Label htmlFor="ticketTitle">Ticket Title</Label>
                     <Input
-                        placeholder="Title..."
-                        value={title}
-                        onChange={e => setTitle(e.target.value)}
+                        id="ticketTitle"
+                        value={ticketTitle}
+                        onChange={(e) => setTicketTitle(e.target.value)}
+                        required
                     />
-                </div>
-                <div className="space-y-2">
-                    <Label>Description</Label>
+                    <Label htmlFor="imageGallery">Image Gallery</Label>
                     <Input
-                        placeholder="Description..."
-                        value={description}
-                        onChange={e => setDescription(e.target.value)}
+                        id="imageGallery"
+                        type="file"
+                        multiple
+                        onChange={handleImageChange}
                     />
-                </div>
-                <div className="space-y-2">
-                    <Label>Status</Label>
-                    <Select value={status} onValueChange={(v) => setStatus(v)}>
-                        <SelectTrigger id="status">
-                            <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
-                        <SelectContent position="popper">
-                            <SelectItem value="Open">Open</SelectItem>
-                            <SelectItem value="InProgress">In Progress</SelectItem>
-                            <SelectItem value="Closed">Closed</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-            </CardContent>
-            <CardFooter>
-                <Button className="w-full flex flex-row gap-10" onClick={() => mutate()}>
-                    {isPending ? (
-                        <div className="h-6 w-6 animate-spin rounded-full border-4 border-gray-400 border-t-secondary" />
-                    ) : (
-                        "Update ticket"
-                    )}
-                </Button>
-            </CardFooter>
+                </CardContent>
+                <CardFooter>
+                    <Button type="submit" disabled={isPending}>
+                        {isPending ? "Updating..." : "Update Ticket"}
+                    </Button>
+                </CardFooter>
+            </form>
         </Card>
     );
 }

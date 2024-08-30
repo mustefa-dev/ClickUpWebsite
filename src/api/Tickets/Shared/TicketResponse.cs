@@ -5,6 +5,7 @@ namespace TicketSystem.Api.Tickets.Shared;
 
 public class TicketResponse
 {
+    public Ulid Id { get; set; }
     public string? TicketTitle { get; set; }
     public Ticket.TicketStatus? CurrentStatus { get; set; }
     public Ulid? CreatorId { get; set; }
