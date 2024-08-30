@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using TicketSystem.Api.Section.Data;
+using TicketSystem.Api.Tickets.Data;
 
 namespace TicketSystem.Api.Auth.Data;
 
@@ -16,6 +17,11 @@ public class User
     public Ulid? SectionId { get; set; }
 
     public Sections? Section { get; set; }
+    
+    public ICollection<Ticket>? CreatedTickets { get; set; }
+    public ICollection<Ticket>? AssignedTickets { get; set; }
+
+    
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter))]

@@ -12,8 +12,8 @@ using TicketSystem.Api.Data;
 namespace TicketSystem.Api.Data.Migrations
 {
     [DbContext(typeof(TicketDbContext))]
-    [Migration("20240828200255_section1")]
-    partial class section1
+    [Migration("20240830080945_Ticket")]
+    partial class Ticket
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -117,9 +117,6 @@ namespace TicketSystem.Api.Data.Migrations
                     b.Property<DateTime?>("CreationDate")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<bool>("Deleted")
-                        .HasColumnType("boolean");
-
                     b.Property<bool?>("IsDeleted")
                         .IsRequired()
                         .HasColumnType("boolean");
@@ -129,7 +126,6 @@ namespace TicketSystem.Api.Data.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("UserId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -137,6 +133,57 @@ namespace TicketSystem.Api.Data.Migrations
                     b.HasIndex("CreatedBy");
 
                     b.ToTable("Sections", (string)null);
+                });
+
+            modelBuilder.Entity("TicketSystem.Api.Tickets.Data.Ticket", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<string>("AssignedUserId")
+                        .HasColumnType("character varying(26)");
+
+                    b.Property<DateTime?>("CreationDate")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("CreatorId")
+                        .IsRequired()
+                        .HasColumnType("character varying(26)");
+
+                    b.Property<int>("CurrentStatus")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("LastUpdated")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<long>("TicketNumber")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("TicketTitle")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("character varying(26)");
+
+                    b.Property<string>("UserId1")
+                        .HasColumnType("character varying(26)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssignedUserId");
+
+                    b.HasIndex("CreatorId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId1");
+
+                    b.ToTable("Tickets");
                 });
 
             modelBuilder.Entity("TicketSystem.Api.Auth.Data.User", b =>
@@ -157,6 +204,39 @@ namespace TicketSystem.Api.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("CreatedByUser");
+                });
+
+            modelBuilder.Entity("TicketSystem.Api.Tickets.Data.Ticket", b =>
+                {
+                    b.HasOne("TicketSystem.Api.Auth.Data.User", "AssignedUser")
+                        .WithMany()
+                        .HasForeignKey("AssignedUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("TicketSystem.Api.Auth.Data.User", "Creator")
+                        .WithMany()
+                        .HasForeignKey("CreatorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TicketSystem.Api.Auth.Data.User", null)
+                        .WithMany("AssignedTickets")
+                        .HasForeignKey("UserId");
+
+                    b.HasOne("TicketSystem.Api.Auth.Data.User", null)
+                        .WithMany("CreatedTickets")
+                        .HasForeignKey("UserId1");
+
+                    b.Navigation("AssignedUser");
+
+                    b.Navigation("Creator");
+                });
+
+            modelBuilder.Entity("TicketSystem.Api.Auth.Data.User", b =>
+                {
+                    b.Navigation("AssignedTickets");
+
+                    b.Navigation("CreatedTickets");
                 });
 
             modelBuilder.Entity("TicketSystem.Api.Section.Data.Sections", b =>

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TicketSystem.Api.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class section : Migration
+    public partial class Ticket : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -33,10 +33,9 @@ namespace TicketSystem.Api.Data.Migrations
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
-                    UserId = table.Column<string>(type: "text", nullable: false),
+                    UserId = table.Column<string>(type: "text", nullable: true),
                     CreatedBy = table.Column<string>(type: "character varying(26)", nullable: false),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    Deleted = table.Column<bool>(type: "boolean", nullable: false),
                     CreationDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
@@ -56,7 +55,7 @@ namespace TicketSystem.Api.Data.Migrations
                     Email = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
                     Role = table.Column<int>(type: "integer", nullable: false),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    SectionId = table.Column<string>(type: "text", nullable: false)
+                    SectionId = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -65,8 +64,50 @@ namespace TicketSystem.Api.Data.Migrations
                         name: "FK_Users_Sections_SectionId",
                         column: x => x.SectionId,
                         principalTable: "Sections",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Tickets",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    TicketTitle = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    CurrentStatus = table.Column<int>(type: "integer", nullable: false),
+                    CreatorId = table.Column<string>(type: "character varying(26)", nullable: false),
+                    AssignedUserId = table.Column<string>(type: "character varying(26)", nullable: true),
+                    LastUpdated = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    TicketNumber = table.Column<long>(type: "bigint", nullable: false),
+                    UserId = table.Column<string>(type: "character varying(26)", nullable: true),
+                    UserId1 = table.Column<string>(type: "character varying(26)", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
+                    CreationDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Tickets", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Tickets_Users_AssignedUserId",
+                        column: x => x.AssignedUserId,
+                        principalTable: "Users",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_Tickets_Users_CreatorId",
+                        column: x => x.CreatorId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Tickets_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Tickets_Users_UserId1",
+                        column: x => x.UserId1,
+                        principalTable: "Users",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateIndex(
@@ -78,6 +119,26 @@ namespace TicketSystem.Api.Data.Migrations
                 name: "IX_Sections_CreatedBy",
                 table: "Sections",
                 column: "CreatedBy");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Tickets_AssignedUserId",
+                table: "Tickets",
+                column: "AssignedUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Tickets_CreatorId",
+                table: "Tickets",
+                column: "CreatorId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Tickets_UserId",
+                table: "Tickets",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Tickets_UserId1",
+                table: "Tickets",
+                column: "UserId1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_Role",
@@ -112,6 +173,9 @@ namespace TicketSystem.Api.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "Medias");
+
+            migrationBuilder.DropTable(
+                name: "Tickets");
 
             migrationBuilder.DropTable(
                 name: "Users");

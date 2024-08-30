@@ -1,6 +1,7 @@
 using AutoMapper.QueryableExtensions;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
+using TicketSystem.Api.Auth.Data;
 using TicketSystem.Api.Common.Extensions;
 using TicketSystem.Api.Data;
 using TicketSystem.Api.Section.Shared;
@@ -22,6 +23,8 @@ public class GetSectionsEndpoint : Endpoint<GetSectionsQuery, List<SectionRespon
     public override void Configure()
     {
         Get("sections");
+        Roles(nameof(Role.Admin));
+
     }
     
     public override async Task HandleAsync(GetSectionsQuery query, CancellationToken ct)

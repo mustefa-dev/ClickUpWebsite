@@ -1,4 +1,3 @@
-// src/website/src/pages/user/add-user-page.tsx
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Api } from "@/Api";

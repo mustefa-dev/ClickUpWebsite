@@ -27,6 +27,11 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
                         <Link to="/sections" className="text-lg font-medium text-primary hover:text-accent transition-colors" onClick={handleLinkClick}>الأقسام</Link>
                     </li>
                     <li className="pt-2">
+                        <Link to="/tickets" className="text-lg font-medium text-primary hover:text-accent transition-colors" onClick={handleLinkClick}>المهام</Link>
+                    </li><li className="pt-2">
+                        <Link to="/my-tickets" className="text-lg font-medium text-primary hover:text-accent transition-colors" onClick={handleLinkClick}>مهامي</Link>
+                    </li>
+                    <li className="pt-2">
                         <Link to="/users" className="text-lg font-medium text-primary hover:text-accent transition-colors" onClick={handleLinkClick}>المستخدمين</Link>
                     </li>
                 </ul>
