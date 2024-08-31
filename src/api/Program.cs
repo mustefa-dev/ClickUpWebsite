@@ -9,6 +9,12 @@ using TicketSystem.Api.Auth.Extensions;
 using TicketSystem.Api.Data;
 using TicketSystem.Api.MediaFiles.Data;
 using TicketSystem.Api.MediaFiles.Extensions;
+using System.Net.WebSockets;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
+using TicketSystem.Api;
 
 var builder = WebApplication.CreateBuilder(args);
 if (builder.Environment.IsDevelopment())
@@ -44,17 +50,16 @@ builder.Services.Configure<JsonOptions>(o =>
 
 builder.Services.AddFastEndpoints();
 builder.Services.SwaggerDocument();
+builder.Services.AddSingleton<WebSocketServerConnectionManager>();
 
 builder
     .AddAuth()
     .AddMedia();
 
-
 var app = builder.Build();
 
 app.UseAuth()
    .UseFastEndpoints();
-
 
 var localFileSaverOptions = builder.Configuration.GetSection("LocalFileSaver").Get<LocalFileSaverOptions>();
 var testpath = localFileSaverOptions?.RootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "media");
@@ -77,6 +82,29 @@ app.UseSwaggerGen();
 app.UseHttpsRedirection();
 app.UseCors();
 
+app.UseWebSockets();
+
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path == "/ws")
+    {
+        if (context.WebSockets.IsWebSocketRequest)
+        {
+            var webSocket = await context.WebSockets.AcceptWebSocketAsync();
+            var manager = context.RequestServices.GetRequiredService<WebSocketServerConnectionManager>();
+            await manager.HandleWebSocketAsync(webSocket, context.RequestAborted);
+        }
+        else
+        {
+            context.Response.StatusCode = 400;
+        }
+    }
+    else
+    {
+        await next();
+    }
+});
+
 app.Use(async (context, next) =>
 {
     if (context.Request.Path == "/")
@@ -85,8 +113,7 @@ app.Use(async (context, next) =>
         return;
     }
     await next();
-}
-);
+});
 
 using var scope = app.Services.CreateAsyncScope();
 using var context = scope.ServiceProvider.GetRequiredService<TicketDbContext>();
