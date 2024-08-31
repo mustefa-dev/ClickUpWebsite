@@ -1,9 +1,6 @@
-import React, { useEffect } from "react";
-import { AuthStore } from "@/utils/authStore";
+import { useEffect } from "react";
 
-const NotificationComponent: React.FC = () => {
-    const userId = AuthStore.State.getState().userInfo.id;
-
+const useWebSocketNotifications = (userId: string) => {
     useEffect(() => {
         const socket = new WebSocket(`ws://192.168.230.137:5194/ws?userId=${userId}`);
 
@@ -28,8 +25,6 @@ const NotificationComponent: React.FC = () => {
             socket.close();
         };
     }, [userId]);
-
-    return <div>Notification system is active.</div>;
 };
 
-export default NotificationComponent;
+export default useWebSocketNotifications;
