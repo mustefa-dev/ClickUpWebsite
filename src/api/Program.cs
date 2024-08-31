@@ -9,12 +9,10 @@ using TicketSystem.Api.Auth.Extensions;
 using TicketSystem.Api.Data;
 using TicketSystem.Api.MediaFiles.Data;
 using TicketSystem.Api.MediaFiles.Extensions;
-using System.Net.WebSockets;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Linq;
-using TicketSystem.Api;
+using Microsoft.AspNetCore.SignalR;
+using TicketSystem.Api.Hubs;
+using TicketSystem.Api.Notifications;
 
 var builder = WebApplication.CreateBuilder(args);
 if (builder.Environment.IsDevelopment())
@@ -24,7 +22,14 @@ builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
 builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddCors(opts => opts.AddDefaultPolicy(x => x.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin()));
+builder.Services.AddCors(opts => opts.AddDefaultPolicy(policy =>
+{
+    policy.WithOrigins("http://localhost:63342")
+        .WithOrigins("http://192.168.159.137:3002")
+        .AllowAnyHeader()
+          .AllowAnyMethod()
+          .AllowCredentials();
+}));
 
 builder.Services.AddDbContext<TicketDbContext>(opts =>
 {
@@ -50,7 +55,7 @@ builder.Services.Configure<JsonOptions>(o =>
 
 builder.Services.AddFastEndpoints();
 builder.Services.SwaggerDocument();
-builder.Services.AddSingleton<WebSocketServerConnectionManager>();
+builder.Services.AddSignalR();
 
 builder
     .AddAuth()
@@ -82,27 +87,13 @@ app.UseSwaggerGen();
 app.UseHttpsRedirection();
 app.UseCors();
 
-app.UseWebSockets();
+app.UseRouting();
 
-app.Use(async (context, next) =>
+app.UseAuthorization(); // Add this line
+
+app.UseEndpoints(endpoints =>
 {
-    if (context.Request.Path == "/ws")
-    {
-        if (context.WebSockets.IsWebSocketRequest)
-        {
-            var webSocket = await context.WebSockets.AcceptWebSocketAsync();
-            var manager = context.RequestServices.GetRequiredService<WebSocketServerConnectionManager>();
-            await manager.HandleWebSocketAsync(webSocket, context.RequestAborted);
-        }
-        else
-        {
-            context.Response.StatusCode = 400;
-        }
-    }
-    else
-    {
-        await next();
-    }
+    endpoints.MapHub<NotificationsHub>("/notifications");
 });
 
 app.Use(async (context, next) =>
