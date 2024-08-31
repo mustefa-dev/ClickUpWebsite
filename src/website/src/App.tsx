@@ -1,14 +1,14 @@
+import React, { useEffect, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { BrowserRouter } from "react-router-dom";
-import { ToastContainer } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import { ThemeProvider } from "./context/theme-provider";
-import { useEffect, useState } from "react";
 import { AuthStore } from "@/utils/authStore";
 import AuthRoutes from "@/routes/auth-routes";
 import UnAuthRoutes from "./routes/un-auth-routes";
+import signalRService from "@/services/signalRService";
 
 function App() {
     const [isLogin, setIslogin] = useState(AuthStore.getAccessToken());
@@ -18,13 +18,18 @@ function App() {
         if (!t) {
             setIslogin(null);
         }
-        console.log(isLogin)
+        console.log(isLogin);
+
+        signalRService.startConnection();
+        signalRService.addNotificationListener((title, message) => {
+            toast(`${title}: ${message}`);
+        });
     }, []);
 
     const client = new QueryClient({
         defaultOptions: {
             queries: {
-                refetchOnWindowFocus: false, 
+                refetchOnWindowFocus: false,
             },
         },
     });
@@ -37,7 +42,6 @@ function App() {
                         <BrowserRouter>{isLogin ? <AuthRoutes /> : <UnAuthRoutes />}</BrowserRouter>
                     </div>
                 </ThemeProvider>
-                {/* <ReactQueryDevtools initialIsOpen={false} /> */}
                 <ToastContainer />
             </QueryClientProvider>
         </>

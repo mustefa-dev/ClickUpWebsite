@@ -10,9 +10,6 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.SignalR;
-using TicketSystem.Api.Hubs;
-using TicketSystem.Api.Notifications;
 
 namespace TicketSystem.Api.Tickets.AddTickets;
 
@@ -20,14 +17,14 @@ public class AddTicketEndpoint : Endpoint<AddTicketRequest, TicketResponse>
 {
     private readonly TicketDbContext _context;
     private readonly AutoMapper.IMapper _mapper;
-    private readonly IHubContext<NotificationsHub> _hubContext;
+    private readonly WebSocketServerConnectionManager _webSocketManager;
     private readonly ILogger<AddTicketEndpoint> _logger;
 
-    public AddTicketEndpoint(AutoMapper.IMapper mapper, TicketDbContext context, IHubContext<NotificationsHub> hubContext, ILogger<AddTicketEndpoint> logger)
+    public AddTicketEndpoint(AutoMapper.IMapper mapper, TicketDbContext context, WebSocketServerConnectionManager webSocketManager, ILogger<AddTicketEndpoint> logger)
     {
         _mapper = mapper;
         _context = context;
-        _hubContext = hubContext;
+        _webSocketManager = webSocketManager;
         _logger = logger;
     }
 
@@ -46,14 +43,13 @@ public class AddTicketEndpoint : Endpoint<AddTicketRequest, TicketResponse>
         entity.CreatorId = user.Id;
         entity.TicketNumber = await TicketIdGenerator.GenerateTicketId(_context);
         entity.CurrentStatus = Ticket.TicketStatus.InProgress;
-        
+
         await _context.Tickets.AddAsync(entity, ct);
         await _context.SaveChangesAsync(ct);
         var response = _mapper.Map<TicketResponse>(entity);
-        
-        var notification = new { title = "New Ticket Assigned", message = $"You have been assigned a new ticket: {request.TicketTitle}" };
-        await _hubContext.Clients.All.SendAsync("ReceiveNotification", notification, ct);
-        _logger.LogInformation("Notification sent to assignee: {Assignee}", request.AssignedUserId);
+
+        var notification = JsonSerializer.Serialize(new { title = "New Ticket Assigned", message = $"You have been assigned a new ticket: {request.TicketTitle}" });
+        await _webSocketManager.SendToUserAsync(request.AssignedUserId.ToString(), notification, ct);
 
         await SendAsync(response, StatusCodes.Status201Created, ct);
     }

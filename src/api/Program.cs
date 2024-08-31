@@ -9,10 +9,12 @@ using TicketSystem.Api.Auth.Extensions;
 using TicketSystem.Api.Data;
 using TicketSystem.Api.MediaFiles.Data;
 using TicketSystem.Api.MediaFiles.Extensions;
+using System.Net.WebSockets;
+using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.SignalR;
-using TicketSystem.Api.Hubs;
-using TicketSystem.Api.Notifications;
+using System.Collections.Generic;
+using System.Linq;
+using TicketSystem.Api;
 
 var builder = WebApplication.CreateBuilder(args);
 if (builder.Environment.IsDevelopment())
@@ -22,14 +24,7 @@ builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
 builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddCors(opts => opts.AddDefaultPolicy(policy =>
-{
-    policy.WithOrigins("http://localhost:63342")
-        .WithOrigins("http://192.168.159.137:3002")
-        .AllowAnyHeader()
-          .AllowAnyMethod()
-          .AllowCredentials();
-}));
+builder.Services.AddCors(opts => opts.AddDefaultPolicy(x => x.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin()));
 
 builder.Services.AddDbContext<TicketDbContext>(opts =>
 {
@@ -55,7 +50,7 @@ builder.Services.Configure<JsonOptions>(o =>
 
 builder.Services.AddFastEndpoints();
 builder.Services.SwaggerDocument();
-builder.Services.AddSignalR();
+builder.Services.AddSingleton<WebSocketServerConnectionManager>();
 
 builder
     .AddAuth()
@@ -87,15 +82,28 @@ app.UseSwaggerGen();
 app.UseHttpsRedirection();
 app.UseCors();
 
-app.UseRouting();
+app.UseWebSockets();
 
-app.UseAuthorization(); // Add this line
-
-app.UseEndpoints(endpoints =>
+app.Use(async (context, next) =>
 {
-    endpoints.MapHub<NotificationsHub>("/notifications");
+    if (context.Request.Path == "/ws")
+    {
+        if (context.WebSockets.IsWebSocketRequest)
+        {
+            var webSocket = await context.WebSockets.AcceptWebSocketAsync();
+            var manager = context.RequestServices.GetRequiredService<WebSocketServerConnectionManager>();
+            await manager.HandleWebSocketAsync(webSocket, context.Request.Query["userId"], context.RequestAborted);
+        }
+        else
+        {
+            context.Response.StatusCode = 400;
+        }
+    }
+    else
+    {
+        await next();
+    }
 });
-
 app.Use(async (context, next) =>
 {
     if (context.Request.Path == "/")

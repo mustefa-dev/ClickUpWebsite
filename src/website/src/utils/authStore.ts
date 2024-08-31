@@ -32,7 +32,12 @@ export class AuthStore {
         AuthStore.State.setState(() => ({ userInfo: null }));
         window.location.href = "/";
     };
+
     static getAccessToken = () => {
         return AuthStore.State.getState()?.userInfo?.accessToken;
+    };
+
+    static getUserInfo = () => {
+        return AuthStore.State.getState()?.userInfo;
     };
 }

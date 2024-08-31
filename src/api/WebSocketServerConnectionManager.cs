@@ -1,14 +1,15 @@
 using System.Net.WebSockets;
+using System.Collections.Concurrent;
 
 namespace TicketSystem.Api;
 
 public class WebSocketServerConnectionManager
 {
-    private readonly List<WebSocket> _sockets = new();
+    private readonly ConcurrentDictionary<string, WebSocket> _userSockets = new();
 
-    public async Task HandleWebSocketAsync(WebSocket webSocket, CancellationToken cancellationToken)
+    public async Task HandleWebSocketAsync(WebSocket webSocket, string userId, CancellationToken cancellationToken)
     {
-        _sockets.Add(webSocket);
+        _userSockets[userId] = webSocket;
 
         var buffer = new byte[1024 * 4];
         while (webSocket.State == WebSocketState.Open)
@@ -17,19 +18,31 @@ public class WebSocketServerConnectionManager
             if (result.MessageType == WebSocketMessageType.Close)
             {
                 await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed by the WebSocket server", cancellationToken);
-                _sockets.Remove(webSocket);
+                _userSockets.TryRemove(userId, out _);
             }
         }
     }
 
     public async Task BroadcastAsync(string message, CancellationToken cancellationToken)
     {
-        var tasks = _sockets.Select(socket => socket.SendAsync(
+        var tasks = _userSockets.Values.Select(socket => socket.SendAsync(
             new ArraySegment<byte>(System.Text.Encoding.UTF8.GetBytes(message)),
             WebSocketMessageType.Text,
             true,
             cancellationToken));
 
         await Task.WhenAll(tasks);
+    }
+
+    public async Task SendToUserAsync(string userId, string message, CancellationToken cancellationToken)
+    {
+        if (_userSockets.TryGetValue(userId, out var socket))
+        {
+            await socket.SendAsync(
+                new ArraySegment<byte>(System.Text.Encoding.UTF8.GetBytes(message)),
+                WebSocketMessageType.Text,
+                true,
+                cancellationToken);
+        }
     }
 }
