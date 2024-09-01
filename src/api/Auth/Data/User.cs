@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using TicketSystem.Api.Comments.Data;
 using TicketSystem.Api.Section.Data;
 using TicketSystem.Api.Tickets.Data;
 
@@ -20,6 +21,8 @@ public class User
     
     public ICollection<Ticket>? CreatedTickets { get; set; }
     public ICollection<Ticket>? AssignedTickets { get; set; }
+
+    public ICollection<Comment>? CreatedComments { get; set; }
 
     
 }
