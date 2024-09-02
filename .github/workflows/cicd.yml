@@ -1,0 +1,55 @@
+name: Build and Publish
+
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    build-api-image:
+        name: Build Api Image
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set up Docker Buildx
+              id: buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Build Api image
+              uses: docker/build-push-action@v5
+              with:
+                  context: .
+                  file: ./docker/api.Dockerfile
+                  tags: |
+                      docker-registry.morabaa.cloud/project-mu-ticket/api:latest
+                  push: ${{ github.ref == 'refs/heads/main' }}
+
+            - name: Image digest
+              run: echo ${{ steps.docker_build.outputs.digest }}
+
+    build-website-image:
+        name: Build Website Image
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set up Docker Buildx
+              id: buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Build Website image
+              uses: docker/build-push-action@v5
+              with:
+                  context: .
+                  file: ./docker/website.Dockerfile
+                  tags: |
+                      docker-registry.morabaa.cloud/project-mu-ticket/website:latest
+                  push: ${{ github.ref == 'refs/heads/main' }}
+
+            - name: Image digest
+              run: echo ${{ steps.docker_build.outputs.digest }}
