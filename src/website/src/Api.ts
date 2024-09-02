@@ -2,7 +2,7 @@ import axios, { AxiosError } from "axios";
 import { AuthStore } from "@/utils/authStore";
 import { decodeJwt } from "jose";
 
-const URL = import.meta.env.PROD ? "/api/" : import.meta.env.VITE_BASE_URL || "http://192.168.23.137:5194";
+const URL = import.meta.env.PROD ? "/api/" : import.meta.env.VITE_BASE_URL || "http://192.168.31.86:5194";
 
 export const ApiConf = {
     url: URL,

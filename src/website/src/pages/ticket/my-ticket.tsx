@@ -11,6 +11,7 @@ import UpdateTicketPage from "@/pages/ticket/update-ticket";
 import AddTicketPage from "@/pages/ticket/add-ticket";
 import { AuthStore } from "@/utils/authStore";
 import TicketDialog from "@/components/TicketDialog";
+import CircularProgress from "@/components/ui/circular-progress"; // Import the CircularProgress component
 
 export default function MyTicketPage() {
     const { id } = useParams<{ id: string }>();
@@ -137,7 +138,7 @@ export default function MyTicketPage() {
                     {status === "loading" && (
                         <tr>
                             <td colSpan={4} className="text-center py-4">
-                                جاري التحميل...
+                                <CircularProgress />
                             </td>
                         </tr>
                     )}
@@ -192,7 +193,7 @@ export default function MyTicketPage() {
                 </Button>
             </div>
             <div className="flex justify-center" ref={ref}>
-                {status === "loading" ? "جاري التحميل..." : ""}
+                {status === "loading" ? <CircularProgress /> : ""} {/* Use CircularProgress here */}
             </div>
 
             {selectedTicketId !== null && (
