@@ -2,8 +2,7 @@ import axios, { AxiosError } from "axios";
 import { AuthStore } from "@/utils/authStore";
 import { decodeJwt } from "jose";
 
-const URL = import.meta.env.VITE_BASE_URL === undefined ? "http://192.168.31.86:5194" : import.meta.env.VITE_BASE_URL
-
+const URL = import.meta.env.PROD ? "/api/" : import.meta.env.VITE_BASE_URL || "http://192.168.23.137:5194";
 
 export const ApiConf = {
     url: URL,
@@ -45,16 +44,16 @@ Api.interceptors.request.use(
     },
     (error) => {
         return Promise.reject(error);
-    },
+    }
 );
 
 Api.interceptors.response.use(
     (response) => {
         return response;
     },
-    async (error : AxiosError) => {
+    async (error: AxiosError) => {
         return Promise.reject(error);
-    },
+    }
 );
 const ApiNoAuth = axios.create({ baseURL: URL });
 
