@@ -12,6 +12,7 @@ import { Navigate ,Route, Routes } from "react-router-dom";
 import SectionUsersPage from "@/pages/section/section-users-page";
 import TicketPage from "@/pages/ticket/ticket-page";
 import MyTicketPage from "@/pages/ticket/my-ticket";
+import TicketDetailsPage from "@/pages/ticket/ticket-details";
 
 const AuthRoutes = () => {
     return (
@@ -29,6 +30,7 @@ const AuthRoutes = () => {
                     <Route path="/users/:id/update" element={<UpdateUserPage /> } />
                     <Route path="/tickets" element={<TicketPage /> } />
                     <Route path="/my-tickets" element={<MyTicketPage /> } />
+
                 </Route>
                 <Route path="*" element={<Navigate to="/" />} />
 

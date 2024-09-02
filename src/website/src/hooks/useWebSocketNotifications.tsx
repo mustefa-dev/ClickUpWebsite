@@ -2,7 +2,7 @@ import { useEffect } from "react";
 
 const useWebSocketNotifications = (userId: string) => {
     useEffect(() => {
-        const socket = new WebSocket(`ws://192.168.230.137:5194/ws?userId=${userId}`);
+        const socket = new WebSocket(`ws://192.168.31.86:5194/ws?userId=${userId}`);
 
         socket.onmessage = (event) => {
             const notificationData = JSON.parse(event.data);

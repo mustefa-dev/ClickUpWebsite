@@ -29,7 +29,7 @@ const NotificationComponent: React.FC = () => {
         };
     }, [userId]);
 
-    return <div>Notification system is active.</div>;
+    return ;
 };
 
 export default NotificationComponent;

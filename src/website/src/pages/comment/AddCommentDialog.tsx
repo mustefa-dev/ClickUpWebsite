@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Api } from "@/Api";
 import { AuthStore } from "@/utils/authStore";
 import uploadMedia from "@/utils/uploadMedia";
-import LocationPickerDialog from "@/components/LocationPickerDialog";
 
 interface AddCommentDialogProps {
     isOpen: boolean;
@@ -17,8 +16,26 @@ const AddCommentDialog: React.FC<AddCommentDialogProps> = ({ isOpen, onClose, ti
     const [content, setContent] = useState("");
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [location, setLocation] = useState<{ lat: number, lng: number } | null>(null);
-    const [isLocationPickerOpen, setIsLocationPickerOpen] = useState(false);
     const [error, setError] = useState("");
+
+    const handleGetCurrentLocation = () => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    setLocation({
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                    });
+                },
+                (error) => {
+                    setError("Failed to get current location. Please try again.");
+                    console.error("Error getting current location:", error);
+                }
+            );
+        } else {
+            setError("Geolocation is not supported by this browser.");
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -33,8 +50,8 @@ const AddCommentDialog: React.FC<AddCommentDialogProps> = ({ isOpen, onClose, ti
                 content,
                 ticketId,
                 imageUrl,
-                lat: location?.lat,
-                lan: location?.lng
+                lat: location?.lat ?? null,
+                lng: location?.lng ?? null
             }, {
                 headers: {
                     'Authorization': `Bearer ${AuthStore.getAccessToken()}`,
@@ -75,26 +92,16 @@ const AddCommentDialog: React.FC<AddCommentDialogProps> = ({ isOpen, onClose, ti
                 <div className="mb-4">
                     <Button
                         type="button"
-                        onClick={() => setIsLocationPickerOpen(true)}
+                        onClick={handleGetCurrentLocation}
                         className="bg-blue-500 text-white p-2 rounded-md"
                     >
-                        Choose Location
+                        Get Current Location
                     </Button>
                 </div>
                 <div className="flex justify-end">
                     <Button type="submit" className="bg-blue-500 text-white p-2 rounded-md">Add Comment</Button>
                 </div>
             </form>
-            {isLocationPickerOpen && (
-                <LocationPickerDialog
-                    isOpen={isLocationPickerOpen}
-                    onClose={() => setIsLocationPickerOpen(false)}
-                    onSelectLocation={(location) => {
-                        setLocation(location);
-                        setIsLocationPickerOpen(false);
-                    }}
-                />
-            )}
         </CustomDialog>
     );
 };

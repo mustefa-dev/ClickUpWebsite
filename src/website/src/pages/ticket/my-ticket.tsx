@@ -1,16 +1,16 @@
+import React, { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useInView } from "react-intersection-observer";
+import { useParams } from "react-router-dom";
+import { FaCheckCircle, FaTimesCircle } from "react-icons/fa";
 import { Api } from "@/Api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
-import { useInView } from "react-intersection-observer";
-import { Edit, Trash } from "lucide-react";
 import CustomDialog from "@/components/Dialog";
 import UpdateTicketPage from "@/pages/ticket/update-ticket";
 import AddTicketPage from "@/pages/ticket/add-ticket";
-import { useParams } from "react-router-dom";
 import { AuthStore } from "@/utils/authStore";
-import {FaCheckCircle, FaTimesCircle} from "react-icons/fa";
+import TicketDialog from "@/components/TicketDialog";
 
 export default function MyTicketPage() {
     const { id } = useParams<{ id: string }>();
@@ -20,6 +20,7 @@ export default function MyTicketPage() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isAddTicketDialogOpen, setIsAddTicketDialogOpen] = useState(false);
     const [selectedTicketId, setSelectedTicketId] = useState<string | null>(id || null);
+    const [selectedTicket, setSelectedTicket] = useState<any | null>(null);
 
     const fetchMyTickets = async (page: number): Promise<any[]> => {
         const pageSize = 10;
@@ -55,15 +56,15 @@ export default function MyTicketPage() {
         setCurrentPage((prev) => Math.max(prev - 1, 1));
     };
 
-    const handleEdit = async (ticketId: string, currentStatus: string) => {
-        const newStatus = currentStatus === "Solved" ? "InProgress" : "Solved";
+    const handleEdit = async (ticket: any) => {
+        const newStatus = ticket.currentStatus === "Solved" ? "InProgress" : "Solved";
         try {
             const token = AuthStore.getAccessToken();
             if (!token) {
                 throw new Error("No access token found");
             }
 
-            const response = await Api.patch(`tickets/status/${ticketId}`, {
+            const response = await Api.patch(`tickets/status/${ticket.id}`, {
                 newStatus
             }, {
                 headers: {
@@ -91,6 +92,11 @@ export default function MyTicketPage() {
 
     const handleAddTicket = () => {
         setIsAddTicketDialogOpen(true);
+    };
+
+    const handleRowClick = (ticket: any) => {
+        setSelectedTicket(ticket);
+        setIsDialogOpen(true);
     };
 
     return (
@@ -137,7 +143,7 @@ export default function MyTicketPage() {
                     )}
                     {data && data.length > 0 ? (
                         data.map((ticket) => (
-                            <tr key={ticket.ticketNumber} className="border-t hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <tr key={ticket.ticketNumber} className="border-t hover:bg-gray-50 dark:hover:bg-gray-700" onClick={() => handleRowClick(ticket)}>
                                 <td className="px-6 py-4 text-sm text-gray-800 dark:text-gray-200">
                                     {ticket.ticketTitle}
                                 </td>
@@ -149,7 +155,10 @@ export default function MyTicketPage() {
                                 </td>
                                 <td className="px-6 py-4 flex space-x-3">
                                     <Button
-                                        onClick={() => handleEdit(ticket.id, ticket.currentStatus)}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleEdit(ticket);
+                                        }}
                                         variant="outline"
                                         size="sm"
                                         className={ticket.currentStatus === "Solved" ? "bg-green-500 text-white" : "bg-red-500 text-white"}
@@ -161,7 +170,6 @@ export default function MyTicketPage() {
                                         )}
                                     </Button>
                                 </td>
-
                             </tr>
                         ))
                     ) : (
@@ -201,6 +209,15 @@ export default function MyTicketPage() {
                 >
                     <AddTicketPage isOpen={isAddTicketDialogOpen} onClose={() => setIsAddTicketDialogOpen(false)} />
                 </CustomDialog>
+            )}
+
+            {selectedTicket && (
+                <TicketDialog
+                    isOpen={!!selectedTicket}
+                    onClose={() => setSelectedTicket(null)}
+                    ticket={selectedTicket}
+                />
+
             )}
         </div>
     );
