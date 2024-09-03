@@ -21,22 +21,27 @@ if (builder.Environment.IsDevelopment())
     builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
 
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
-
 builder.Services.AddEndpointsApiExplorer();
-
 builder.Services.AddCors(opts => opts.AddDefaultPolicy(x => x.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin()));
 
 builder.Services.AddDbContext<TicketDbContext>(opts =>
 {
-    opts.UseNpgsql(
-        builder.Configuration.GetConnectionString("PostgreConnection")
-    );
+    opts.UseNpgsql(builder.Configuration.GetConnectionString("PostgreConnection"));
     if (builder.Environment.IsDevelopment())
     {
         opts.EnableSensitiveDataLogging();
     }
 });
 
+builder.Services.AddRouting(options => options.LowercaseUrls = true);
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigins", builder => builder
+        .WithOrigins("http://localhost:63342") // Specify the allowed origins
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials()); // Allow credentials
+});
 builder.Services.ConfigureHttpJsonOptions(o =>
 {
     o.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
@@ -50,20 +55,16 @@ builder.Services.Configure<JsonOptions>(o =>
 
 builder.Services.AddFastEndpoints();
 builder.Services.SwaggerDocument();
-builder.Services.AddSingleton<WebSocketServerConnectionManager>();
-
-builder
-    .AddAuth()
-    .AddMedia();
+builder.Services.AddSignalR();
+builder.AddAuth().AddMedia();
 
 var app = builder.Build();
 
-app.UseAuth()
-   .UseFastEndpoints();
+app.UseAuth().UseFastEndpoints();
 
 var localFileSaverOptions = builder.Configuration.GetSection("LocalFileSaver").Get<LocalFileSaverOptions>();
 var testpath = localFileSaverOptions?.RootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "media");
-if (Directory.Exists(testpath) == false)
+if (!Directory.Exists(testpath))
     Directory.CreateDirectory(testpath);
 
 app.UseStaticFiles(new StaticFileOptions
@@ -78,32 +79,12 @@ else
     app.UseHsts();
 
 app.UseSwaggerGen();
-
 app.UseHttpsRedirection();
-app.UseCors();
-
+app.UseCors("AllowSpecificOrigins"); 
 app.UseWebSockets();
 
-app.Use(async (context, next) =>
-{
-    if (context.Request.Path == "/ws")
-    {
-        if (context.WebSockets.IsWebSocketRequest)
-        {
-            var webSocket = await context.WebSockets.AcceptWebSocketAsync();
-            var manager = context.RequestServices.GetRequiredService<WebSocketServerConnectionManager>();
-            await manager.HandleWebSocketAsync(webSocket, context.Request.Query["userId"], context.RequestAborted);
-        }
-        else
-        {
-            context.Response.StatusCode = 400;
-        }
-    }
-    else
-    {
-        await next();
-    }
-});
+
+
 app.Use(async (context, next) =>
 {
     if (context.Request.Path == "/")
@@ -113,6 +94,8 @@ app.Use(async (context, next) =>
     }
     await next();
 });
+
+app.MapHub<TicketHub>("/ticketsHub");
 
 using var scope = app.Services.CreateAsyncScope();
 using var context = scope.ServiceProvider.GetRequiredService<TicketDbContext>();
