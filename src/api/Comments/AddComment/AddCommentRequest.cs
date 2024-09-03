@@ -6,6 +6,6 @@ public class AddCommentRequest
     public Ulid TicketId { get; set; }
     public string? ImageUrl { get; set; }
     public string? Lat { get; set; }
-    public string? Lan { get; set; }
+    public string? Lng { get; set; }
 }
 

@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
-using TicketSystem.Api.Hubs;
 
 namespace TicketSystem.Api.Tickets.AddTickets;
 
@@ -19,19 +18,15 @@ public class AddTicketEndpoint : Endpoint<AddTicketRequest, TicketResponse>
 {
     private readonly TicketDbContext _context;
     private readonly AutoMapper.IMapper _mapper;
-    private readonly WebSocketServerConnectionManager _webSocketManager;
     private readonly ILogger<AddTicketEndpoint> _logger;
     private readonly IHubContext<TicketHub> _hubContext;
-    private readonly PushNotificationService _pushNotificationService;
 
-    public AddTicketEndpoint(AutoMapper.IMapper mapper, TicketDbContext context, WebSocketServerConnectionManager webSocketManager, ILogger<AddTicketEndpoint> logger, IHubContext<TicketHub> hubContext, PushNotificationService pushNotificationService)
+    public AddTicketEndpoint(AutoMapper.IMapper mapper, TicketDbContext context, ILogger<AddTicketEndpoint> logger, IHubContext<TicketHub> hubContext)
     {
         _mapper = mapper;
         _context = context;
-        _webSocketManager = webSocketManager;
         _logger = logger;
         _hubContext = hubContext;
-        _pushNotificationService = pushNotificationService;
     }
 
     public override void Configure()
@@ -50,15 +45,19 @@ public class AddTicketEndpoint : Endpoint<AddTicketRequest, TicketResponse>
         entity.TicketNumber = await TicketIdGenerator.GenerateTicketId(_context);
         entity.CurrentStatus = Ticket.TicketStatus.InProgress;
 
+        var assignedUserId = entity.AssignedUserId;
+
         var result = await _context.Tickets.AddAsync(entity, ct);
         await _context.SaveChangesAsync(ct);
         var response = _mapper.Map<TicketResponse>(entity);
-        await _hubContext.Clients.All.SendAsync("NewTicket", result.Entity);
 
-        // Send push notification
-        var payload = JsonSerializer.Serialize(new { title = "New Ticket", message = "A new ticket has been created." });
-        await _pushNotificationService.SendNotificationAsync(user.Endpoint, user.P256dh, user.Auth, payload);
+        if (assignedUserId != null)
+        {
+            await _hubContext.Clients.Group(assignedUserId.ToString()).SendAsync("NewTicket", result.Entity);
+        }
 
         await SendAsync(response, StatusCodes.Status201Created, ct);
     }
+
+
 }
