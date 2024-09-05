@@ -25,7 +25,6 @@ function App() {
                 .then(() => {
                     console.log("Connected to the SignalR hub");
 
-                    // Join the group with the user's ID
                     if (userInfo.id) {
                         newConnection.invoke("JoinGroup", userInfo.id);
                     }

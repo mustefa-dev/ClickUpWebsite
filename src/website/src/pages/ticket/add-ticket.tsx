@@ -9,8 +9,10 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 
 const AddTicketPage = ({ isOpen, onClose }) => {
     const [ticketTitle, setTicketTitle] = useState("");
+    const [ticketDescription, setTicketDescription] = useState("");
+    const [ticketDateTime, setTicketDateTime] = useState("");
     const [imageGallery, setImageGallery] = useState<File[]>([]);
-    const [assignedUserId, setAssignedUserId] = useState("");
+    const [assignedUserIds, setAssignedUserIds] = useState<string[]>([""]);
     const [error, setError] = useState("");
     const [users, setUsers] = useState([]);
     const navigate = useNavigate();
@@ -37,11 +39,17 @@ const AddTicketPage = ({ isOpen, onClose }) => {
         return data;
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         try {
             const uploadedImages = await Promise.all(imageGallery.map(file => uploadMedia(file)));
-            const ticket = { ticketTitle, imageGallery: uploadedImages.flat(), assignedUserId };
+            const ticket = {
+                ticketTitle,
+                ticketDescription,
+                ticketDateTime,
+                imageGallery: uploadedImages.flat(),
+                assignedUserIds
+            };
             const response = await createTicket(ticket);
             if (response) {
                 navigate("/"); // Navigate back to the home page
@@ -51,6 +59,16 @@ const AddTicketPage = ({ isOpen, onClose }) => {
             setError("فشل في إضافة التذكرة. حاول مرة أخرى.");
             console.error("Error adding ticket:", err);
         }
+    };
+
+    const handleAddUser = () => {
+        setAssignedUserIds([...assignedUserIds, ""]);
+    };
+
+    const handleUserChange = (index, value) => {
+        const newAssignedUserIds = [...assignedUserIds];
+        newAssignedUserIds[index] = value;
+        setAssignedUserIds(newAssignedUserIds);
     };
 
     return (
@@ -74,6 +92,23 @@ const AddTicketPage = ({ isOpen, onClose }) => {
                     </div>
                     <div className="mb-4">
                         <Input
+                            type="text"
+                            placeholder="وصف التذكرة"
+                            value={ticketDescription}
+                            onChange={(e) => setTicketDescription(e.target.value)}
+                            className="w-full p-2 border border-gray-300 rounded-md"
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <Input
+                            type="datetime-local"
+                            value={ticketDateTime}
+                            onChange={(e) => setTicketDateTime(e.target.value)}
+                            className="w-full p-2 border border-gray-300 rounded-md"
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <Input
                             type="file"
                             multiple
                             onChange={(e) => setImageGallery(Array.from(e.target.files))}
@@ -82,18 +117,23 @@ const AddTicketPage = ({ isOpen, onClose }) => {
                         />
                     </div>
                     <div className="mb-4">
-                        <Select onValueChange={setAssignedUserId}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="اختر المستخدم المعين" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {users.map(user => (
-                                    <SelectItem key={user.id} value={user.id}>
-                                        {user.username}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        {assignedUserIds.map((userId, index) => (
+                            <div key={index} className="flex items-center mb-2">
+                                <Select onValueChange={(value) => handleUserChange(index, value)} value={userId}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="اختر المستخدم المعين" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {users.map(user => (
+                                            <SelectItem key={user.id} value={user.id}>
+                                                {user.username}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        ))}
+                        <Button onClick={handleAddUser} className="mt-2">إضافة مستخدم آخر</Button>
                     </div>
                     <DialogFooter>
                         <Button type="submit" className="bg-blue-500 text-white p-2 rounded-md">إضافة</Button>

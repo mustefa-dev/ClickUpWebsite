@@ -7,10 +7,12 @@ public class TicketResponse
 {
     public Ulid Id { get; set; }
     public string? TicketTitle { get; set; }
+    public string? TicketDescription{ get; set; }
+    public DateTime? TicketDateTime { get; set; }
     public Ticket.TicketStatus? CurrentStatus { get; set; }
     public Ulid? CreatorId { get; set; }
     public List<string>? ImageGallery { get; set; }
-    public Ulid? AssignedUserId { get; set; }
+    public List<Ulid>? AssignedUserIds { get; set; }
     public DateTime? LastUpdated { get; set; }
     public long? TicketNumber { get; set; }
 }

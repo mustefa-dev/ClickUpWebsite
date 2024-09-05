@@ -37,10 +37,10 @@ builder.Services.AddRouting(options => options.LowercaseUrls = true);
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigins", builder => builder
-        .WithOrigins("http://localhost:63342") // Specify the allowed origins
+        .WithOrigins("http://localhost:3002") 
         .AllowAnyHeader()
         .AllowAnyMethod()
-        .AllowCredentials()); // Allow credentials
+        .AllowCredentials()); 
 });
 builder.Services.ConfigureHttpJsonOptions(o =>
 {

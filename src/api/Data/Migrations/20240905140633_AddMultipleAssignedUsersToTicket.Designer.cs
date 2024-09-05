@@ -13,8 +13,8 @@ using TicketSystem.Api.Data;
 namespace TicketSystem.Api.Data.Migrations
 {
     [DbContext(typeof(TicketDbContext))]
-    [Migration("20240903155233_sw")]
-    partial class sw
+    [Migration("20240905140633_AddMultipleAssignedUsersToTicket")]
+    partial class AddMultipleAssignedUsersToTicket
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,6 +25,21 @@ namespace TicketSystem.Api.Data.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("TicketAssignedUser", b =>
+                {
+                    b.Property<string>("AssignedUserId")
+                        .HasColumnType("character varying(26)");
+
+                    b.Property<string>("TicketId")
+                        .HasColumnType("text");
+
+                    b.HasKey("AssignedUserId", "TicketId");
+
+                    b.HasIndex("TicketId");
+
+                    b.ToTable("TicketAssignedUser");
+                });
 
             modelBuilder.Entity("TicketSystem.Api.Auth.Data.User", b =>
                 {
@@ -99,10 +114,10 @@ namespace TicketSystem.Api.Data.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
-                    b.Property<string>("Lat")
+                    b.Property<string>("Lan")
                         .HasColumnType("text");
 
-                    b.Property<string>("Lng")
+                    b.Property<string>("Lat")
                         .HasColumnType("text");
 
                     b.Property<string>("TicketId")
@@ -185,43 +200,13 @@ namespace TicketSystem.Api.Data.Migrations
                     b.ToTable("Sections", (string)null);
                 });
 
-            modelBuilder.Entity("TicketSystem.Api.Tickets.Data.PushSubscription", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Auth")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Endpoint")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("P256dh")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("PushSubscription");
-                });
-
             modelBuilder.Entity("TicketSystem.Api.Tickets.Data.Ticket", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("text");
 
-                    b.Property<string>("AssignedUserId")
-                        .IsRequired()
-                        .HasColumnType("character varying(26)");
+                    b.Property<string>("AssignedUserIds")
+                        .HasColumnType("text");
 
                     b.Property<DateTime?>("CreationDate")
                         .HasColumnType("timestamp without time zone");
@@ -250,23 +235,26 @@ namespace TicketSystem.Api.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<string>("UserId")
-                        .HasColumnType("character varying(26)");
-
-                    b.Property<string>("UserId1")
-                        .HasColumnType("character varying(26)");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("AssignedUserId");
 
                     b.HasIndex("CreatorId");
 
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("UserId1");
-
                     b.ToTable("Tickets");
+                });
+
+            modelBuilder.Entity("TicketAssignedUser", b =>
+                {
+                    b.HasOne("TicketSystem.Api.Auth.Data.User", null)
+                        .WithMany()
+                        .HasForeignKey("AssignedUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TicketSystem.Api.Tickets.Data.Ticket", null)
+                        .WithMany()
+                        .HasForeignKey("TicketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("TicketSystem.Api.Auth.Data.User", b =>
@@ -314,35 +302,17 @@ namespace TicketSystem.Api.Data.Migrations
 
             modelBuilder.Entity("TicketSystem.Api.Tickets.Data.Ticket", b =>
                 {
-                    b.HasOne("TicketSystem.Api.Auth.Data.User", "AssignedUser")
-                        .WithMany()
-                        .HasForeignKey("AssignedUserId")
-                        .OnDelete(DeleteBehavior.SetNull)
-                        .IsRequired();
-
                     b.HasOne("TicketSystem.Api.Auth.Data.User", "Creator")
-                        .WithMany()
+                        .WithMany("CreatedTickets")
                         .HasForeignKey("CreatorId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.HasOne("TicketSystem.Api.Auth.Data.User", null)
-                        .WithMany("AssignedTickets")
-                        .HasForeignKey("UserId");
-
-                    b.HasOne("TicketSystem.Api.Auth.Data.User", null)
-                        .WithMany("CreatedTickets")
-                        .HasForeignKey("UserId1");
-
-                    b.Navigation("AssignedUser");
 
                     b.Navigation("Creator");
                 });
 
             modelBuilder.Entity("TicketSystem.Api.Auth.Data.User", b =>
                 {
-                    b.Navigation("AssignedTickets");
-
                     b.Navigation("CreatedComments");
 
                     b.Navigation("CreatedTickets");

@@ -15,8 +15,10 @@ export default function SectionUsersPage() {
     const navigate = useNavigate();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [ticketTitle, setTicketTitle] = useState("");
+    const [ticketDescription, setTicketDescription] = useState("");
+    const [ticketDateTime, setTicketDateTime] = useState("");
     const [imageGallery, setImageGallery] = useState<File[]>([]);
-    const [assignedUserId, setAssignedUserId] = useState("");
+    const [assignedUserIds, setAssignedUserIds] = useState<string[]>([""]);
     const [error, setError] = useState("");
 
     const { data: section, error: sectionError, isLoading: sectionLoading } = useQuery<Section>({
@@ -49,7 +51,7 @@ export default function SectionUsersPage() {
         e.preventDefault();
         try {
             const uploadedImages = await Promise.all(imageGallery.map(file => uploadMedia(file)));
-            const ticket = { ticketTitle, imageGallery: uploadedImages.flat(), assignedUserId };
+            const ticket = { ticketTitle, ticketDescription, ticketDateTime, imageGallery: uploadedImages.flat(), assignedUserIds };
             const response = await createTicket(ticket);
             if (response) {
                 setIsDialogOpen(false);
@@ -61,6 +63,16 @@ export default function SectionUsersPage() {
         }
     };
 
+    const handleAddUser = () => {
+        setAssignedUserIds([...assignedUserIds, ""]);
+    };
+
+    const handleUserChange = (index, value) => {
+        const newAssignedUserIds = [...assignedUserIds];
+        newAssignedUserIds[index] = value;
+        setAssignedUserIds(newAssignedUserIds);
+    };
+
     if (sectionLoading || usersLoading) {
         return <div className="p-5 h-screen bg-secondary flex items-center justify-center">جار التحميل...</div>;
     }
@@ -70,17 +82,14 @@ export default function SectionUsersPage() {
     }
 
     return (
-
         <div className="p-5 h-screen bg-secondary rtl">
             <div className="flex justify-between items-center">
-                <Button onClick={() => navigate(-1)} variant="outline" size="sm"
-                        className="bg-blue-500 text-white p-2 rounded-md">
+                <Button onClick={() => navigate(-1)} variant="outline" size="sm" className="bg-blue-500 text-white p-2 rounded-md">
                     رجوع
                 </Button>
                 <Button onClick={() => setIsDialogOpen(true)} className="bg-blue-500 text-white p-2 rounded-md">
                     إضافة تذكرة جديدة
                 </Button>
-
             </div>
 
             <h1 className="text-2xl mb-4">المستخدمين في القسم: {section?.name}</h1>
@@ -112,6 +121,23 @@ export default function SectionUsersPage() {
                         </div>
                         <div className="mb-4">
                             <Input
+                                type="text"
+                                placeholder="وصف التذكرة"
+                                value={ticketDescription}
+                                onChange={(e) => setTicketDescription(e.target.value)}
+                                className="w-full p-2 border border-gray-300 rounded-md"
+                            />
+                        </div>
+                        <div className="mb-4">
+                            <Input
+                                type="datetime-local"
+                                value={ticketDateTime}
+                                onChange={(e) => setTicketDateTime(e.target.value)}
+                                className="w-full p-2 border border-gray-300 rounded-md"
+                            />
+                        </div>
+                        <div className="mb-4">
+                            <Input
                                 type="file"
                                 multiple
                                 onChange={(e) => setImageGallery(Array.from(e.target.files))}
@@ -120,18 +146,23 @@ export default function SectionUsersPage() {
                             />
                         </div>
                         <div className="mb-4">
-                            <Select onValueChange={setAssignedUserId} value={assignedUserId} required>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="اختر المستخدم المعين"/>
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {users?.map(user => (
-                                        <SelectItem key={user.id} value={user.id}>
-                                            {user.username}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            {assignedUserIds.map((userId, index) => (
+                                <div key={index} className="flex items-center mb-2">
+                                    <Select onValueChange={(value) => handleUserChange(index, value)} value={userId}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="اختر المستخدم المعين" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {users?.map(user => (
+                                                <SelectItem key={user.id} value={user.id}>
+                                                    {user.username}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            ))}
+                            <Button onClick={handleAddUser} className="mt-2">إضافة مستخدم آخر</Button>
                         </div>
                         <DialogFooter>
                             <Button type="submit" className="bg-blue-500 text-white p-2 rounded-md">إضافة</Button>

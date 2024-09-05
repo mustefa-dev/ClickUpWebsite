@@ -28,9 +28,8 @@ public class GetMyTicketEndpoint : EndpointWithoutRequest<List<TicketResponse>>
     public override async Task HandleAsync(CancellationToken ct)
     {
         var user = (User)HttpContext.Items["User"]!;
-        var tickets = await _context.Tickets
-            .Where(t => t.AssignedUserId == user.Id)
-            .ToListAsync(ct);
+        var tickets = _context.Tickets
+            .Where(t => t.AssignedUsers.Any(u => u.Id == user.Id));
 
         var response = _mapper.Map<List<TicketResponse>>(tickets);
         await SendAsync(response, StatusCodes.Status200OK, ct);

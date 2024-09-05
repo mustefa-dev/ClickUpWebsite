@@ -47,7 +47,7 @@ public class UpdateTicketStatusEndpoint : Endpoint<UpdateTicketStatusRequest, Ti
         }
 
         var user = (User)HttpContext.Items["User"]!;
-        if (user.Role != Role.Admin && ticket.AssignedUserId != user.Id)
+        if (user.Role != Role.Admin && ticket.AssignedUsers.All(u => u.Id != user.Id))
         {
             await SendForbiddenAsync(ct);
             return;

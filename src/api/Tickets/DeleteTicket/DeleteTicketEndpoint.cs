@@ -42,7 +42,7 @@ public class DeleteTicketEndpoint : EndpointWithoutRequest
         }
 
         var user = (User)HttpContext.Items["User"]!;
-        if (user.Role != Role.Admin && ticket.AssignedUserId != user.Id)
+        if (user.Role != Role.Admin )
         {
             await SendForbiddenAsync(ct);
             return;

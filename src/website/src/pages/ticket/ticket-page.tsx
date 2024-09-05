@@ -7,6 +7,7 @@ import { useInView } from "react-intersection-observer";
 import CustomDialog from "@/components/Dialog";
 import UpdateTicketPage from "@/pages/ticket/update-ticket";
 import AddTicketPage from "@/pages/ticket/add-ticket";
+import TicketDialog from "@/components/TicketDialog";
 import { useParams } from "react-router-dom";
 import { Edit, Trash } from "lucide-react";
 
@@ -18,6 +19,7 @@ export default function TicketPage() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isAddTicketDialogOpen, setIsAddTicketDialogOpen] = useState(false);
     const [selectedTicketId, setSelectedTicketId] = useState<string | null>(id || null);
+    const [selectedTicket, setSelectedTicket] = useState<any | null>(null);
 
     const fetchTickets = async (page: number): Promise<any[]> => {
         const pageSize = 10;
@@ -71,6 +73,10 @@ export default function TicketPage() {
         setIsAddTicketDialogOpen(true);
     };
 
+    const handleRowClick = (ticket: any) => {
+        setSelectedTicket(ticket);
+    };
+
     return (
         <div className="p-5 bg-secondary">
             <div className="mb-4 flex flex-col md:flex-row justify-between items-center">
@@ -115,7 +121,7 @@ export default function TicketPage() {
                     )}
                     {data && data.length > 0 ? (
                         data.map((ticket) => (
-                            <tr key={ticket.id} className="border-t hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <tr key={ticket.id} className="border-t hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer" onClick={() => handleRowClick(ticket)}>
                                 <td className="px-6 py-4 text-sm text-gray-800 dark:text-gray-200">
                                     {ticket.ticketTitle}
                                 </td>
@@ -172,6 +178,14 @@ export default function TicketPage() {
                 >
                     <AddTicketPage isOpen={isAddTicketDialogOpen} onClose={() => setIsAddTicketDialogOpen(false)} />
                 </CustomDialog>
+            )}
+
+            {selectedTicket && (
+                <TicketDialog
+                    isOpen={!!selectedTicket}
+                    onClose={() => setSelectedTicket(null)}
+                    ticket={selectedTicket}
+                />
             )}
         </div>
     );

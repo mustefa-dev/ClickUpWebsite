@@ -18,13 +18,10 @@ public class User
     public Ulid? SectionId { get; set; }
 
     public Sections? Section { get; set; }
-    
-    public ICollection<Ticket>? CreatedTickets { get; set; }
+
     public ICollection<Ticket>? AssignedTickets { get; set; }
-
+    public ICollection<Ticket>? CreatedTickets { get; set; }
     public ICollection<Comment>? CreatedComments { get; set; }
-
-    
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
