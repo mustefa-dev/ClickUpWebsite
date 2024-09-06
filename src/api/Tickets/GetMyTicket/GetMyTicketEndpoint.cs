@@ -29,6 +29,7 @@ public class GetMyTicketEndpoint : EndpointWithoutRequest<List<TicketResponse>>
     {
         var user = (User)HttpContext.Items["User"]!;
         var tickets = _context.Tickets
+            .Include(t => t.AssignedUsers)
             .Where(t => t.AssignedUsers.Any(u => u.Id == user.Id));
 
         var response = _mapper.Map<List<TicketResponse>>(tickets);

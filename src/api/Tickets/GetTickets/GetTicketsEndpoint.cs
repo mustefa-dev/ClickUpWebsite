@@ -29,6 +29,8 @@ public class GetTicketsEndpoint : Endpoint<GetTicketsQuery, List<TicketResponse>
     {
         var ticketsQuery = _context.Tickets
             .Where(t => !t.IsDeleted)
+            .Include(t => t.Creator)
+            .Include(t => t.AssignedUsers)
             .AsQueryable();
 
         if (query.CurrentStatus.HasValue)
@@ -40,4 +42,5 @@ public class GetTicketsEndpoint : Endpoint<GetTicketsQuery, List<TicketResponse>
         var response = _mapper.Map<List<TicketResponse>>(tickets);
         await SendAsync(response, StatusCodes.Status200OK, ct);
     }
+
 }

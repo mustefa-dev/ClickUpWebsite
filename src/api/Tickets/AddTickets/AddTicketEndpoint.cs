@@ -44,10 +44,22 @@ namespace TicketSystem.Api.Tickets.AddTickets;
             entity.TicketNumber = await TicketIdGenerator.GenerateTicketId(_context);
             entity.CurrentStatus = Ticket.TicketStatus.InProgress;
 
-            var assignedUserIds = entity.AssignedUserIds;
+            var assignedUserIds = request.AssignedUserIds;
 
             var result = await _context.Tickets.AddAsync(entity, ct);
             await _context.SaveChangesAsync(ct);
+
+            if (assignedUserIds != null && assignedUserIds.Any())
+            {
+                var assignedUsers = await _context.Users
+                    .Where(u => assignedUserIds.Contains(u.Id))
+                    .ToListAsync(ct);
+
+                entity.AssignedUsers ??= new List<User>();
+                entity.AssignedUsers.AddRange(assignedUsers);
+                await _context.SaveChangesAsync(ct);
+            }
+
             var response = _mapper.Map<TicketResponse>(entity);
 
             if (assignedUserIds != null)
