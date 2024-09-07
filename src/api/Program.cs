@@ -53,7 +53,7 @@ builder.Services.AddFastEndpoints();
 builder.Services.SwaggerDocument();
 builder.Services.AddSignalR();
 builder.Services.AddHttpClient();
-builder.Services.AddScoped<OneSignalService>();
+builder.Services.AddSingleton<OneSignalNotificationService>();
 
 builder.AddAuth().AddMedia();
 

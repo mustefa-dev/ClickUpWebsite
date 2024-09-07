@@ -1,92 +1,62 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
+using RestSharp;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+using System.Threading.Tasks;
 
-namespace TicketSystem.Api.OneSignal;
-
-public class OneSignalService
+namespace TicketSystem.Api.OneSignal
 {
-    private readonly HttpClient _httpClient;
-    private readonly string _oneSignalAppId;
-    private readonly string _oneSignalApiKey;
-    private readonly ILogger<OneSignalService> _logger;
-
-    public OneSignalService(HttpClient httpClient, IConfiguration configuration, ILogger<OneSignalService> logger)
+    public class OneSignalNotificationService
     {
-        _httpClient = httpClient;
-        _oneSignalAppId = configuration["OneSignal:AppId"];
-        _oneSignalApiKey = configuration["OneSignal:ApiKey"];
-        _logger = logger;
-    }
+        private readonly ILogger<OneSignalNotificationService> _logger;
+        private const string OneSignalApiUrl = "https://onesignal.com/api/v1/notifications";
+        private const string OneSignalAppId = "dd637b2c-eb92-45bf-b722-c3070f910806"; 
+        private const string OneSignalApiKey = "NzI2NTBkMjctMmE0ZC00NWEwLTg1ZjEtNzZmMzg4ZjE0YzU0"; 
 
-    public async Task SendNotificationAsync(string title, string message, List<string> playerIds)
-    {
-        // Generate UUIDs from the player IDs
-        var uuidPlayerIds = GenerateUuidsFromPlayerIds(playerIds);
-
-        if (!uuidPlayerIds.Any())
+        public OneSignalNotificationService(ILogger<OneSignalNotificationService> logger)
         {
-            _logger.LogError("No valid player IDs provided.");
-            throw new ArgumentException("No valid player IDs provided.");
+            _logger = logger;
         }
 
-        // Create payload according to OneSignal's API structure
-        var payload = new
+        public async Task SendNotificationAsync(string ticketTitle, string ticketNumber)
         {
-            app_id = _oneSignalAppId,
-            headings = new { en = title },
-            contents = new { en = message },
-            include_player_ids = uuidPlayerIds
-        };
+            _logger.LogInformation("Sending notification for ticket: {TicketTitle} (#{TicketNumber})", ticketTitle, ticketNumber);
 
-        var content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
+            var client = new RestClient(OneSignalApiUrl);
+            var request = new RestRequest("", Method.Post);
 
-        var request = new HttpRequestMessage(HttpMethod.Post, "https://onesignal.com/api/v1/notifications")
-        {
-            Headers =
+            // OneSignal Authorization Header
+            request.AddHeader("Authorization", $"Basic {OneSignalApiKey}");
+            request.AddHeader("Content-Type", "application/json");
+
+            // Build the JSON body for sending notification to all players
+            var body = new
             {
-                { "Authorization", $"Basic {_oneSignalApiKey}" }
-            },
-            Content = content
-        };
+                app_id = OneSignalAppId,
+                headings = new { en = "New Ticket Assigned" },
+                contents = new { en = $"Ticket: {ticketTitle} (#{ticketNumber})" },
+                included_segments = new[] { "All" } // Target all users
+            };
 
-        _logger.LogInformation("Sending notification with payload: {Payload}", JsonConvert.SerializeObject(payload));
+            request.AddJsonBody(body);
 
-        try
-        {
-            var response = await _httpClient.SendAsync(request);
-            var responseContent = await response.Content.ReadAsStringAsync();
-
-            _logger.LogInformation("Response status: {StatusCode}, Content: {ResponseContent}", response.StatusCode, responseContent);
-
-            if (!response.IsSuccessStatusCode)
+            try
             {
-                _logger.LogError("Failed to send notification. Status Code: {StatusCode}, Response: {ResponseContent}", response.StatusCode, responseContent);
-                throw new HttpRequestException($"Error sending notification. StatusCode: {response.StatusCode}, Response: {responseContent}");
+                var response = await client.ExecuteAsync(request);
+
+                if (!response.IsSuccessful)
+                {
+                    _logger.LogError("Error sending notification: {ErrorMessage}, StatusCode: {StatusCode}, ResponseContent: {ResponseContent}",
+                        response.ErrorMessage, response.StatusCode, response.Content);
+                    throw new Exception($"Error sending notification: {response.Content}");
+                }
+
+                _logger.LogInformation("Notification sent successfully: {ResponseContent}", response.Content);
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception occurred while sending notification.");
+                throw new Exception("Error sending notification", ex);
+            }
+        }
 
-            response.EnsureSuccessStatusCode();
-        }
-        catch (HttpRequestException ex)
-        {
-            _logger.LogError("HttpRequestException: {Message}", ex.Message);
-            throw;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError("Unexpected error while sending notification: {Message}", ex.Message);
-            throw;
-        }
-    }
-
-    private List<string> GenerateUuidsFromPlayerIds(List<string> playerIds)
-    {
-        // Generate UUIDs based on the number of player IDs provided
-        return playerIds.Select(_ => Guid.NewGuid().ToString()).ToList();
     }
 }

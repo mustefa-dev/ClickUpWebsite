@@ -6,26 +6,28 @@ using TicketSystem.Api.Tickets.Shared;
 using TicketSystem.Api.Common.Extensions;
 using TicketSystem.Api.Common;
 using TicketSystem.Api.Data;
-using System.Text.Json;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
+using TicketSystem.Api.OneSignal;
 
 namespace TicketSystem.Api.Tickets.AddTickets;
+
 public class AddTicketEndpoint : Endpoint<AddTicketRequest, TicketResponse>
 {
     private readonly TicketDbContext _context;
     private readonly AutoMapper.IMapper _mapper;
     private readonly ILogger<AddTicketEndpoint> _logger;
-    private readonly IHubContext<TicketHub> _hubContext;
+    private readonly OneSignalNotificationService _oneSignalNotificationService;
 
-    public AddTicketEndpoint(AutoMapper.IMapper mapper, TicketDbContext context, ILogger<AddTicketEndpoint> logger, IHubContext<TicketHub> hubContext)
+    public AddTicketEndpoint(AutoMapper.IMapper mapper, TicketDbContext context, ILogger<AddTicketEndpoint> logger, OneSignalNotificationService oneSignalNotificationService)
     {
         _mapper = mapper;
         _context = context;
         _logger = logger;
-        _hubContext = hubContext;
+        _oneSignalNotificationService = oneSignalNotificationService;
     }
 
     public override void Configure()
@@ -49,8 +51,6 @@ public class AddTicketEndpoint : Endpoint<AddTicketRequest, TicketResponse>
         var result = await _context.Tickets.AddAsync(entity, ct);
         await _context.SaveChangesAsync(ct);
 
-        List<string> assignees = new List<string>();
-
         if (assignedUserIds != null && assignedUserIds.Any())
         {
             var assignedUsers = await _context.Users
@@ -61,30 +61,19 @@ public class AddTicketEndpoint : Endpoint<AddTicketRequest, TicketResponse>
             entity.AssignedUsers.AddRange(assignedUsers);
             await _context.SaveChangesAsync(ct);
 
-            assignees = assignedUsers.Select(u => u.Username).ToList();
+            // Log the assigned users
+            _logger.LogInformation("Assigned users: {AssignedUsers}", string.Join(", ", assignedUsers.Select(u => u.Username)));
+
+            var response = _mapper.Map<TicketResponse>(entity);
+
+            // Send notification to all players
+            await _oneSignalNotificationService.SendNotificationAsync(
+                ticketTitle: entity.TicketTitle,
+                ticketNumber: entity.TicketNumber.ToString()
+            );
+
+            await SendAsync(response, StatusCodes.Status201Created, ct);
         }
-
-        var response = _mapper.Map<TicketResponse>(entity);
-
-        if (assignedUserIds != null)
-        {
-            foreach (var assignedUserId in assignedUserIds)
-            {
-                var notification = new NotificationResponse
-                {
-                    TicketTitle = entity.TicketTitle,
-                    Assignees = assignees
-                };
-                await _hubContext.Clients.Group(assignedUserId.ToString()).SendAsync("NewTicket", notification);
-            }
-        }
-
-        await SendAsync(response, StatusCodes.Status201Created, ct);
     }
-}
 
-public class NotificationResponse
-{
-    public string TicketTitle { get; set; }
-    public List<string> Assignees { get; set; }
 }
