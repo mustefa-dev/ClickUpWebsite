@@ -9,12 +9,7 @@ using TicketSystem.Api.Auth.Extensions;
 using TicketSystem.Api.Data;
 using TicketSystem.Api.MediaFiles.Data;
 using TicketSystem.Api.MediaFiles.Extensions;
-using System.Net.WebSockets;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Linq;
-using TicketSystem.Api;
+using TicketSystem.Api.OneSignal;
 
 var builder = WebApplication.CreateBuilder(args);
 if (builder.Environment.IsDevelopment())
@@ -57,6 +52,9 @@ builder.Services.Configure<JsonOptions>(o =>
 builder.Services.AddFastEndpoints();
 builder.Services.SwaggerDocument();
 builder.Services.AddSignalR();
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<OneSignalService>();
+
 builder.AddAuth().AddMedia();
 
 var app = builder.Build();
