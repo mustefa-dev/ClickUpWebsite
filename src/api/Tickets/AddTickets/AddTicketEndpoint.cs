@@ -61,19 +61,19 @@ public class AddTicketEndpoint : Endpoint<AddTicketRequest, TicketResponse>
             entity.AssignedUsers.AddRange(assignedUsers);
             await _context.SaveChangesAsync(ct);
 
-            // Log the assigned users
             _logger.LogInformation("Assigned users: {AssignedUsers}", string.Join(", ", assignedUsers.Select(u => u.Username)));
 
             var response = _mapper.Map<TicketResponse>(entity);
 
-            // Send notification to all players
-            await _oneSignalNotificationService.SendNotificationAsync(
+            await _oneSignalNotificationService.SendNotificationToUsersByUlidAsync(
                 ticketTitle: entity.TicketTitle,
-                ticketNumber: entity.TicketNumber.ToString()
+                ticketNumber: entity.TicketNumber.ToString(),
+                userUlids: assignedUserIds
             );
 
             await SendAsync(response, StatusCodes.Status201Created, ct);
         }
     }
+
 
 }

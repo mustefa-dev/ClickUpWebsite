@@ -16,24 +16,24 @@ namespace TicketSystem.Api.OneSignal
             _logger = logger;
         }
 
-        public async Task SendNotificationAsync(string ticketTitle, string ticketNumber)
+        public async Task SendNotificationToUsersByUlidAsync(string ticketTitle, string ticketNumber, List<Ulid> userUlids)
         {
-            _logger.LogInformation("Sending notification for ticket: {TicketTitle} (#{TicketNumber})", ticketTitle, ticketNumber);
+            _logger.LogInformation("Sending notification for ticket: {TicketTitle} (#{TicketNumber}) to specific users", ticketTitle, ticketNumber);
 
             var client = new RestClient(OneSignalApiUrl);
             var request = new RestRequest("", Method.Post);
 
-            // OneSignal Authorization Header
             request.AddHeader("Authorization", $"Basic {OneSignalApiKey}");
             request.AddHeader("Content-Type", "application/json");
 
-            // Build the JSON body for sending notification to all players
+            var userExternalIds = userUlids.Select(id => id.ToString()).ToList();
+
             var body = new
             {
                 app_id = OneSignalAppId,
                 headings = new { en = "New Ticket Assigned" },
                 contents = new { en = $"Ticket: {ticketTitle} (#{ticketNumber})" },
-                included_segments = new[] { "All" } // Target all users
+                include_external_user_ids = userExternalIds 
             };
 
             request.AddJsonBody(body);
@@ -57,6 +57,7 @@ namespace TicketSystem.Api.OneSignal
                 throw new Exception("Error sending notification", ex);
             }
         }
+
 
     }
 }
