@@ -1,92 +1,81 @@
-import React, { useEffect, useState } from "react";
-import { BrowserRouter } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ThemeProvider } from "./context/theme-provider";
-import { AuthStore } from "@/utils/authStore";
-import AuthRoutes from "@/routes/auth-routes";
-import UnAuthRoutes from "./routes/un-auth-routes";
-import NotificationComponent from "@/components/NotificationComponent";
-import * as signalR from "@microsoft/signalr";
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import axios from 'axios';
 
-function App() {
-    const [connection, setConnection] = useState(null);
-    const [isLogin, setIslogin] = useState(AuthStore.getAccessToken());
+const CLIENT_ID = 'SHBUK5OCBOJ4AH44XUUTJNFH5Y66BYWB';
+const REDIRECT_URI = 'http://localhost:5272/api/ClickUp/Callback';
+
+const App: React.FC = () => {
+    const [accessToken, setAccessToken] = useState<string | null>(null);
+    const [tasks, setTasks] = useState<any[]>([]);
+    const [loading, setLoading] = useState<boolean>(false);
 
     useEffect(() => {
-        const userInfo = AuthStore.State.getState().userInfo;
-        setIslogin(userInfo);
-
-        if (userInfo) {
-            const createConnection = () => {
-                const newConnection = new signalR.HubConnectionBuilder()
-                    .withUrl("http://192.168.31.86:5194/ticketsHub", { withCredentials: true })
-                    .build();
-
-                newConnection.start()
-                    .then(() => {
-                        console.log("Connected to the SignalR hub");
-
-                        if (userInfo.id) {
-                            newConnection.invoke("JoinGroup", userInfo.id);
-                        }
-
-                        setConnection(newConnection);
-                    })
-                    .catch(err => {
-                        console.error("Error connecting to the SignalR hub:", err);
-                        setTimeout(createConnection, 5000); // Retry connection after 5 seconds
-                    });
-
-                newConnection.on("NewTicket", (ticket) => {
-                    if (Notification.permission === "granted") {
-                        new Notification("New Ticket", {
-                            body: JSON.stringify(ticket),
-                        });
-                    }
-                });
-
-                newConnection.onclose((error) => {
-                    console.error("Connection closed with error:", error);
-                    setTimeout(createConnection, 5000); // Retry connection after 5 seconds
-                });
-            };
-
-            createConnection();
+        const query = new URLSearchParams(window.location.search);
+        const token = query.get('access_token');
+        if (token) {
+            setAccessToken(token);
+            localStorage.setItem('access_token', token);
         }
+    }, []);
 
-        return () => {
-            if (connection) {
-                connection.stop().then(() => console.log("Disconnected from the SignalR hub"));
-            }
-        };
-    }, [isLogin]);
+    const handleSignIn = () => {
+        const authUrl = `https://app.clickup.com/api?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
+        window.location.href = authUrl;
+    };
 
-    const client = new QueryClient({
-        defaultOptions: {
-            queries: {
-                refetchOnWindowFocus: false,
-            },
-        },
-    });
+    const fetchTasks = async () => {
+        if (!accessToken) return;
+
+        setLoading(true);
+        try {
+            const response = await axios.get('https://api.clickup.com/api/v2/task', {
+                headers: {
+                    Authorization: accessToken,
+                },
+            });
+            setTasks(response.data.tasks);
+        } catch (error) {
+            console.error('Error fetching tasks:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchTasks();
+    }, [accessToken]);
 
     return (
-        <QueryClientProvider client={client}>
-            <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-                <div className="relative h-full font-cairo">
-                    <BrowserRouter>
-                        {isLogin ? (
-                            <>
-                                <AuthRoutes />
-                                <NotificationComponent />
-                            </>
-                        ) : (
-                            <UnAuthRoutes />
-                        )}
-                    </BrowserRouter>
-                </div>
-            </ThemeProvider>
-        </QueryClientProvider>
+        <Router>
+            <div className="p-8">
+                <h1 className="text-2xl font-bold mb-4">ClickUp OAuth Example</h1>
+                <Routes>
+                    <Route path="/" element={accessToken ? <Navigate to="/tasks" /> : <button onClick={handleSignIn} className="bg-blue-500 text-white px-4 py-2 rounded">Sign in with ClickUp</button>} />
+                    <Route path="/tasks" element={accessToken ? (
+                        <div>
+                            <h2 className="text-xl font-semibold mb-4">Your Tasks</h2>
+                            {loading ? (
+                                <p>Loading tasks...</p>
+                            ) : (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {tasks.map(task => (
+                                        <div key={task.id} className="bg-white border rounded-lg shadow p-4">
+                                            <h3 className="font-bold text-lg">{task.name}</h3>
+                                            <p className="text-gray-600">Status: {task.status}</p>
+                                            {/* Add more task details as needed */}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <Navigate to="/" />
+                    )} />
+                </Routes>
+            </div>
+        </Router>
     );
-}
+};
 
 export default App;
