@@ -1,6 +1,4 @@
-// src/layout/main-layout.tsx
-import Header from "@/components/Header";
-import Sidebar from "@/components/Sidebar";
+
 import { ErrorBoundary } from "react-error-boundary";
 import { Outlet } from "react-router-dom";
 import { useState } from "react";

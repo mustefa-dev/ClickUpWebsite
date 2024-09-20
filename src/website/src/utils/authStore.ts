@@ -1,43 +1,26 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
-import { immer } from "zustand/middleware/immer";
-
-type TUserInfo = {
-    accessToken: string;
-    refreshToken: string;
-    username: string;
-    firstName: string;
-    lastName: string;
-    id: string;
-};
-
-const initialAuthValue: { userInfo: TUserInfo | null } = {
-    userInfo: null,
-};
-
-export class AuthStore {
-    static State = create<typeof initialAuthValue>()(
-        persist(
-            immer(() => initialAuthValue),
-            { name: "user-info" },
-        ),
-    );
-
-    static onLogin = (payload: TUserInfo) => {
-        AuthStore.State.setState(() => ({ userInfo: payload }));
-        window.location.href = "/";
-    };
-
-    static onLogout = () => {
-        AuthStore.State.setState(() => ({ userInfo: null }));
-        window.location.href = "/";
-    };
-
-    static getAccessToken = () => {
-        return AuthStore.State.getState()?.userInfo?.accessToken;
-    };
-
-    static getUserInfo = () => {
-        return AuthStore.State.getState()?.userInfo;
-    };
+// authStore.ts
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import { Task } from '@/types/types';
+interface AuthState {
+    accessToken: string | null;
+    tasks: any[];
+    setAccessToken: (token: string) => void;
+    setTasks: (tasks: any[]) => void;
+    clearAuth: () => void;
 }
+
+export const useAuthStore = create<AuthState>()(
+    persist(
+        (set) => ({
+            accessToken: null,
+            tasks: [],
+            setAccessToken: (token: string) => set(() => ({ accessToken: token })),
+            setTasks: (tasks: any[]) => set(() => ({ tasks })),
+            clearAuth: () => set(() => ({ accessToken: null, tasks: [] }))
+        }),
+        {
+            name: 'auth-store',
+        }
+    )
+);
