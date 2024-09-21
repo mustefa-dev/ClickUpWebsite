@@ -16,7 +16,7 @@ const OAuthCallback: React.FC = () => {
         if (code) {
             fetchAccessTokenAndTasks(code);
         } else {
-            navigate('/'); // Redirect to login if no code is found
+            navigate('/');
         }
     }, [navigate, setAccessToken, setTasks]);
 

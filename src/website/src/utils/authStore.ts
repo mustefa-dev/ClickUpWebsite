@@ -1,7 +1,7 @@
 // authStore.ts
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Task } from '@/types/types';
+
 interface AuthState {
     accessToken: string | null;
     tasks: any[];
@@ -13,11 +13,17 @@ interface AuthState {
 export const useAuthStore = create<AuthState>()(
     persist(
         (set) => ({
-            accessToken: null,
+            accessToken: localStorage.getItem('accessToken'),
             tasks: [],
-            setAccessToken: (token: string) => set(() => ({ accessToken: token })),
+            setAccessToken: (token: string) => {
+                localStorage.setItem('accessToken', token);
+                set(() => ({ accessToken: token }));
+            },
             setTasks: (tasks: any[]) => set(() => ({ tasks })),
-            clearAuth: () => set(() => ({ accessToken: null, tasks: [] }))
+            clearAuth: () => {
+                localStorage.removeItem('accessToken');
+                set(() => ({ accessToken: null, tasks: [] }));
+            }
         }),
         {
             name: 'auth-store',

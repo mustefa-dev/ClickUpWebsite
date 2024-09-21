@@ -2,7 +2,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/utils/authStore';
-import { generateAuthUrl } from '@/utils/authUtils';
 
 const CLIENT_ID = 'SHBUK5OCBOJ4AH44XUUTJNFH5Y66BYWB';
 const REDIRECT_URI = 'http://localhost:3002/oauth/callback';
