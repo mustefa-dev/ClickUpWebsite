@@ -1,15 +1,14 @@
-// src/website/src/services/TaskService.ts
-import axios from 'axios';
+// src/services/TaskService.ts
+import axios, { AxiosRequestConfig } from 'axios';
+import {BASE_URL} from "../../../config";
 
 class TaskService {
-    private static API_BASE_URL = 'http://localhost:5272/api/clickup';
-
     static async fetchTasks(accessToken: string) {
         try {
-            const response = await axios.get(`${this.API_BASE_URL}/fetchtasks`, {
+            const response = await axios.get(`${BASE_URL}/fetchtasks`, {
                 params: { accessToken },
                 headers: { 'accept': '*/*' }
-            });
+            } as AxiosRequestConfig);
             return response.data;
         } catch (error) {
             console.error('Error fetching tasks:', error);

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import TaskService from '@/services/taskService';
+import CommentService from '@/services/commentService';
 import TaskCard from '@/components/TaskCard';
 import TaskDetailsDialog from '@/components/TaskDetailsDialog';
 import { useAuthStore } from '@/utils/authStore';
@@ -22,12 +23,8 @@ const TaskListPage: React.FC = () => {
         if (selectedTask) {
             const fetchComments = async () => {
                 try {
-                    const accessToken = localStorage.getItem('accessToken');
-                    if (!accessToken) throw new Error('Access token not found');
-                    const response = await axios.get(`${BASE_URL}/getcomments`, {
-                        params: { taskId: selectedTask.id, accessToken }
-                    });
-                    setComments(response.data);
+                    const comments = await CommentService.fetchComments(selectedTask.id);
+                    setComments(comments);
                 } catch (error) {
                     console.error('Error fetching comments:', error);
                 }
