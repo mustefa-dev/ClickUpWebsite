@@ -2,10 +2,11 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/utils/authStore';
+import {BASE_URL} from "../../../config";
 
 const CLIENT_ID = 'SHBUK5OCBOJ4AH44XUUTJNFH5Y66BYWB';
 const REDIRECT_URI = 'http://localhost:3002/oauth/callback';
-const API_BASE_URL = 'http://localhost:5272/api/ClickUp';
+// const API_BASE_URL = 'https://mustefa.co/api/ClickUp';
 
 const LoginPage: React.FC = () => {
     const navigate = useNavigate();
@@ -24,7 +25,7 @@ const LoginPage: React.FC = () => {
 
     const fetchAccessTokenAndTasks = async (code: string) => {
         try {
-            const response = await fetch(`${API_BASE_URL}/Callback?code=${code}`);
+            const response = await fetch(`${BASE_URL}/Callback?code=${code}`);
             if (!response.ok) throw new Error("Failed to fetch data");
             const data = await response.json();
             setAccessToken(data.accessToken);
