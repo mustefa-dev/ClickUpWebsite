@@ -53,3 +53,20 @@ jobs:
 
             - name: Image digest
               run: echo ${{ steps.docker_build.outputs.digest }}
+
+    deploy:
+        name: Deploy
+        runs-on: ubuntu-latest
+        needs: [build-api-image, build-website-image]
+        steps:
+            - name: Pull and Deploy
+              uses: appleboy/ssh-action@v1.0.3
+              with:
+                  host: ${{ secrets.HOST }}
+                  username: ${{ secrets.USERNAME }}
+                  password: ${{ secrets.PASSWORD }}
+                  port: 22
+                  script: |
+                      cd ${{ secrets.PATH }}
+                      docker compose pull
+                      docker compose up -d --build
