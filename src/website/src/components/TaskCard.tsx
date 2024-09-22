@@ -1,20 +1,18 @@
+// src/components/TaskCard.tsx
 import React from 'react';
 import { Task } from '@/types/types';
 import { useAuthStore } from '@/utils/authStore';
 
 type TaskCardProps = {
     task: Task;
-    status: string;
-    onStatusChanged: (newStatus: string) => void;
-    onTap: () => void;
+    onTap: (task: Task) => void;
 };
 
-const TaskCard: React.FC<TaskCardProps> = ({ task, status, onStatusChanged, onTap }) => {
+const TaskCard: React.FC<TaskCardProps> = ({ task, onTap }) => {
     const { updateTaskStatus } = useAuthStore();
 
     const handleStatusChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         const newStatus = event.target.value;
-        onStatusChanged(newStatus);
         updateTaskStatus(task.id, newStatus);
     };
 
@@ -42,7 +40,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, status, onStatusChanged, onTa
             case 3:
                 return (
                     <select
-                        value={['لم يبدأ', 'قيد التقدم', 'مكتمل'].includes(status) ? status : ''}
+                        value={['لم يبدأ', 'قيد التقدم', 'مكتمل'].includes(task.status.status) ? task.status.status : ''}
                         onChange={handleStatusChange}
                         className="w-full p-1 border rounded text-sm"
                     >
@@ -77,7 +75,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, status, onStatusChanged, onTa
     };
 
     return (
-        <div onClick={onTap} className="m-2 p-2 border rounded shadow-md">
+        <div onClick={() => onTap(task)} className="m-2 p-2 border rounded shadow-md">
             <div className="grid grid-cols-3 gap-2">
                 {Array.from({ length: 9 }).map((_, index) => (
                     <div key={index} className="col-span-1">
@@ -90,4 +88,3 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, status, onStatusChanged, onTa
 };
 
 export default TaskCard;
-

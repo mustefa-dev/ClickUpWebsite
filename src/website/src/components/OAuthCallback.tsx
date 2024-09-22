@@ -1,9 +1,8 @@
-// src/website/src/components/OAuthCallback.tsx
+// src/components/OAuthCallback.tsx
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/utils/authStore';
-
-const API_BASE_URL = 'http://localhost:5272/api/ClickUp';
+import {BASE_URL} from "../../../config";
 
 const OAuthCallback: React.FC = () => {
     const navigate = useNavigate();
@@ -22,7 +21,7 @@ const OAuthCallback: React.FC = () => {
 
     const fetchAccessTokenAndTasks = async (code: string) => {
         try {
-            const response = await fetch(`${API_BASE_URL}/Callback?code=${code}`);
+            const response = await fetch(`${BASE_URL}/Callback?code=${code}`);
             if (!response.ok) throw new Error("Failed to fetch data");
             const data = await response.json();
             setAccessToken(data.accessToken);
