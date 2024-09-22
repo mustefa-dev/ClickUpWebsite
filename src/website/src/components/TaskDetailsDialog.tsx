@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Typography, Box } from '@mui/material';
 import TaskDetailsCard from './TaskDetailsCard';
 import CommentCard from './CommentCard';
 import { Task } from '@/types/types';
-import { Box, Typography } from '@mui/material';
 import CommentService from '@/services/commentService';
 
 interface Comment {
@@ -42,6 +41,8 @@ interface TaskDetailsDialogProps {
 
 const TaskDetailsDialog: React.FC<TaskDetailsDialogProps> = ({ open, onClose, task, comments, onAddComment }) => {
   const [newCommentText, setNewCommentText] = useState('');
+  const [attachment, setAttachment] = useState<File | null>(null); // State for the attachment
+  const [validationErrors, setValidationErrors] = useState<{ [key: string]: string[] }>({});
 
   if (!task) return null;
 
@@ -49,12 +50,28 @@ const TaskDetailsDialog: React.FC<TaskDetailsDialogProps> = ({ open, onClose, ta
   const handleAddComment = async () => {
     if (newCommentText.trim()) {
       try {
-        await CommentService.addComment(task.id, newCommentText);
-        onAddComment(newCommentText);
-        setNewCommentText('');
+        const response = await CommentService.addComment(task.id, newCommentText, attachment); // Pass the attachment
+        if (response.validationErrors) {
+          setValidationErrors(response.validationErrors);
+        } else {
+          let updatedCommentText = newCommentText;
+          if (attachment && response.attachmentUrl) {
+            updatedCommentText += `\n\nAttachment: ${response.attachmentUrl}`;
+          }
+          onAddComment(updatedCommentText);
+          setNewCommentText('');
+          setAttachment(null);
+          setValidationErrors({});
+        }
       } catch (error) {
         console.error('Error adding comment:', error);
       }
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setAttachment(e.target.files[0]);
     }
   };
 
@@ -86,7 +103,23 @@ const TaskDetailsDialog: React.FC<TaskDetailsDialogProps> = ({ open, onClose, ta
                 minRows={3}
                 value={newCommentText}
                 onChange={(e) => setNewCommentText(e.target.value)}
+                error={!!validationErrors.CommentText}
+                helperText={validationErrors.CommentText ? validationErrors.CommentText.join(', ') : ''}
             />
+            <Button
+                variant="contained"
+                component="label"
+            >
+              إرفاق ملف
+              <input
+                  type="file"
+                  hidden
+                  onChange={handleFileChange}
+              />
+            </Button>
+            {validationErrors.attachment && (
+                <Typography color="error">{validationErrors.attachment.join(', ')}</Typography>
+            )}
             <Button
                 variant="contained"
                 color="primary"
