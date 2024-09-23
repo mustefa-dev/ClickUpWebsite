@@ -77,13 +77,50 @@ const TaskDetailsDialog: React.FC<TaskDetailsDialogProps> = ({ open, onClose, ta
 
   return (
       <Dialog open={open} onClose={onClose} fullScreen>
-        <DialogTitle>تفاصيل المهمة</DialogTitle>
-        <DialogContent>
+        <DialogTitle  className="border-b flex px-6 py-4">
+          كافة المعلومات
+          <button className="text-primary    mr-auto" onClick={onClose}>رجوع</button>
+        </DialogTitle>
+        <DialogContent className="grid gap-10 mr-2">
           <TaskDetailsCard task={task} />
-          <Typography variant="h6" sx={{ marginBottom: 2 }}>
-            التعليقات
-          </Typography>
           <Box display="flex" flexDirection="column" gap={2}>
+            <p className="text-xl mb-2">التعليقات</p>
+            {/* Comment Input Field */}
+            <Box display="flex" flexDirection="column" gap={2} mb={2}>
+              <TextField
+                  label="أضف تعليق"
+                  variant="outlined"
+                  fullWidth
+                  multiline
+                  minRows={3}
+                  value={newCommentText}
+                  onChange={(e) => setNewCommentText(e.target.value)}
+                  error={!!validationErrors.CommentText}
+                  helperText={validationErrors.CommentText ? validationErrors.CommentText.join(', ') : ''}
+              />
+              <Button
+                  variant="contained"
+                  component="label"
+              >
+                إرفاق ملف
+                <input
+                    type="file"
+                    hidden
+                    onChange={handleFileChange}
+                />
+              </Button>
+              {validationErrors.attachment && (
+                  <Typography color="error">{validationErrors.attachment.join(', ')}</Typography>
+              )}
+              <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleAddComment}
+                  disabled={!newCommentText.trim()} // Disable button if no text is entered
+              >
+                إضافة تعليق
+              </Button>
+            </Box>
             {comments.length > 0 ? (
                 comments.map((comment) => (
                     <CommentCard key={comment.id} comment={comment} />
@@ -93,46 +130,7 @@ const TaskDetailsDialog: React.FC<TaskDetailsDialogProps> = ({ open, onClose, ta
             )}
           </Box>
 
-          {/* Comment Input Field */}
-          <Box display="flex" flexDirection="column" gap={2} mt={4}>
-            <TextField
-                label="أضف تعليق"
-                variant="outlined"
-                fullWidth
-                multiline
-                minRows={3}
-                value={newCommentText}
-                onChange={(e) => setNewCommentText(e.target.value)}
-                error={!!validationErrors.CommentText}
-                helperText={validationErrors.CommentText ? validationErrors.CommentText.join(', ') : ''}
-            />
-            <Button
-                variant="contained"
-                component="label"
-            >
-              إرفاق ملف
-              <input
-                  type="file"
-                  hidden
-                  onChange={handleFileChange}
-              />
-            </Button>
-            {validationErrors.attachment && (
-                <Typography color="error">{validationErrors.attachment.join(', ')}</Typography>
-            )}
-            <Button
-                variant="contained"
-                color="primary"
-                onClick={handleAddComment}
-                disabled={!newCommentText.trim()} // Disable button if no text is entered
-            >
-              إضافة تعليق
-            </Button>
-          </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={onClose} color="primary">إغلاق</Button>
-        </DialogActions>
       </Dialog>
   );
 };

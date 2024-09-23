@@ -1,7 +1,12 @@
-// src/components/TaskCard.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import { Task } from '@/types/types';
 import { useAuthStore } from '@/utils/authStore';
+import FormControl from "@mui/material/FormControl";
+import InputLabel from "@mui/material/InputLabel";
+import Select, { SelectChangeEvent } from "@mui/material/Select";
+import { Box, MenuItem } from "@mui/material";
+import Card from '@mui/material/Card';
+import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
 
 type TaskCardProps = {
     task: Task;
@@ -10,80 +15,59 @@ type TaskCardProps = {
 
 const TaskCard: React.FC<TaskCardProps> = ({ task, onTap }) => {
     const { updateTaskStatus } = useAuthStore();
+    const [changeStatus, setChangeStatus] = useState('');
 
-    const handleStatusChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        const newStatus = event.target.value;
+    const handleStatusChange = (event: SelectChangeEvent<unknown>, child: React.ReactNode) => {
+        const newStatus = event.target.value as string;
         updateTaskStatus(task.id, newStatus);
-    };
-
-    const renderContent = (index: number) => {
-        switch (index) {
-            case 0:
-                return (
-                    <div className="flex flex-wrap">
-                        {task.tags?.map((tag, idx) => (
-                            <div key={idx} className="flex-1">
-                                <span className="inline-block bg-gray-200 rounded-full px-2 py-1 text-xs font-semibold text-gray-700 mr-1 mb-1">
-                                    {tag.name}
-                                </span>
-                            </div>
-                        )) || <span>لا توجد علامات</span>}
-                    </div>
-                );
-
-            case 2:
-                return (
-                    <div className="text-right">
-                        <span className="text-sm font-medium">{task.name}</span>
-                    </div>
-                );
-            case 3:
-                return (
-                    <select
-                        value={['لم يبدأ', 'قيد التقدم', 'مكتمل'].includes(task.status.status) ? task.status.status : ''}
-                        onChange={handleStatusChange}
-                        className="w-full p-1 border rounded text-sm"
-                    >
-                        <option value="" disabled>اختر الحالة</option>
-                        <option value="لم يبدأ">لم يبدأ</option>
-                        <option value="قيد التقدم">قيد التقدم</option>
-                        <option value="مكتمل">مكتمل</option>
-                    </select>
-                );
-            case 6:
-                return (
-                    <div className="flex items-center">
-                        <img
-                            src={task.creator.profilePicture || ''}
-                            alt={task.creator.username}
-                            className="w-8 h-8 rounded-full"
-                        />
-                        {!task.creator.profilePicture && (
-                            <span className="ml-1 text-sm">{task.creator.username[0]}</span>
-                        )}
-                    </div>
-                );
-            case 8:
-                return (
-                    <div className="text-center">
-                        <span className="text-sm">{task.name}</span>
-                    </div>
-                );
-            default:
-                return <div className="hidden"></div>;
-        }
+        setChangeStatus(newStatus);
+        event.stopPropagation();
     };
 
     return (
-        <div onClick={() => onTap(task)} className="m-2 p-2 border rounded shadow-md">
-            <div className="grid grid-cols-3 gap-2">
-                {Array.from({ length: 9 }).map((_, index) => (
-                    <div key={index} className="col-span-1">
-                        {renderContent(index)}
-                    </div>
-                ))}
+        <Card onClick={() => onTap(task)} variant={"none"} className={"grid gap-4 p-6"}>
+            <div className="grid gap-2">
+                <span className="text-sm">{task.name}</span>
+                <div className="flex flex-wrap">
+                    {task.tags?.map((tag, idx) => (
+                        <div key={idx} className="flex-1">
+                        <span
+                            className="inline-block bg-gray-200 rounded-full px-2 py-1 text-xs font-semibold text-gray-700 mr-1 mb-1">
+                            {tag.name}
+                        </span>
+                        </div>
+                    )) || <span>لا توجد علامات</span>}
+                </div>
             </div>
-        </div>
+            <Box sx={{minWidth: 300}}>
+                <FormControl sx={{ m: 1, width: 300 }} size="small">
+                    <InputLabel id="demo-simple-select-">فلترة</InputLabel>
+                    <Select
+                        value={['لم يبدأ', 'قيد التقدم', 'مكتمل'].includes(task.status.status) ? task.status.status : changeStatus}
+                        label="All Statuses"
+                        onChange={handleStatusChange}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <MenuItem value={"لم يبدأ"}>لم يبدأ</MenuItem>
+                        <MenuItem value={"قيد التقدم"}>قيد التقدم</MenuItem>
+                        <MenuItem value={"مكتمل"}>مكتمل</MenuItem>
+                    </Select>
+                </FormControl>
+            </Box>
+            <div className="flex items-center gap-1">
+                {task.creator.profilePicture ? (
+                    <img
+                        src={task.creator.profilePicture || ''}
+                        alt={task.creator.username}
+                        className="w-8 h-8 rounded-full"
+                    />
+                ) : <AccountCircleOutlinedIcon className="w-8 h-8" />}
+
+                {!task.creator.profilePicture && (
+                    <span className="ml-1 text-sm">{task.creator.username}</span>
+                )}
+            </div>
+        </Card>
     );
 };
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardHeader, CardContent, Avatar, Typography, Box } from '@mui/material';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
 interface Comment {
     text: string;
@@ -27,40 +27,96 @@ interface CommentData {
     replyCount: number | null;
 }
 
+// List of image file extensions
+const imageExtensions = [
+    'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg', 'tiff', 'tif', 'ico', 'heic', 'heif', 'jfif', 'pjpeg', 'pjp',
+    'avif', 'apng', 'raw', 'cr2', 'nef', 'orf', 'sr2', 'arw', 'dng', 'rw2', 'raf', 'eps', 'ai', 'indd', 'psd', 'cpt',
+    'exr', 'hdr', 'jxr', 'wdp', 'qoi', 'pict', 'dds', 'emf', 'wmf', 'xpm', 'tga', 'vst', 'pic'
+];
+
+// Utility function to detect URLs and image extensions
+const parseCommentText = (text: string) => {
+    const parts = text.split(' ');
+
+    return parts.map((part, index) => {
+        // Check if the part contains a URL
+        let url = part;
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+            url = 'https://' + url; // Add https if missing
+        }
+
+        try {
+            // Check if the part ends with an image extension and it's a valid URL
+            const fileExtension = url.split('.').pop()?.toLowerCase();
+            const isImage = fileExtension && imageExtensions.includes(fileExtension);
+            const isValidUrl = new URL(url); // This will throw if URL is invalid
+
+            if (isImage) {
+                return (
+                    <img
+                        key={index}
+                        src={url}
+                        alt="comment image"
+                        className="inline-block w-20 h-20 object-cover rounded-md"
+                    />
+                );
+            }
+        } catch (e) {
+            // Ignore if it's not a valid URL
+        }
+
+        // Return a clickable link if it's a valid URL
+        if (url.startsWith('https://') || url.startsWith('http://')) {
+            return (
+                <a href={url} key={index} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">
+                    {part}
+                </a>
+            );
+        }
+
+        // Otherwise, return the part as plain text
+        return <span key={index}>{part} </span>;
+    });
+};
+
 const CommentCard: React.FC<{ comment: CommentData }> = ({ comment }) => {
     const { user, commentText, date, reactions, replyCount } = comment;
 
     return (
-        <Card sx={{ display: 'flex', flexDirection: 'column', padding: 2 }}>
-            <CardHeader
-                avatar={
-                    <Avatar
-                        alt={user.username}
-                        src={user.profilePicture || ''}
-                        sx={{ backgroundColor: user.color }}
-                    >
-                        {!user.profilePicture && user.initials}
-                    </Avatar>
-                }
-                title={user.username}
-                subheader={new Date(parseInt(date)).toLocaleString('ar-EG')}
-            />
-            <CardContent>
-                <Typography variant="body2">
-                    {comment.comment.map((c) => c.text).join(' ')}
-                </Typography>
-                <Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>
-                    <Box>
-                        <Typography variant="caption">{`ردود (${replyCount || 0})`}</Typography>
-                    </Box>
-                    <Box display="flex" alignItems="center" gap={1}>
+        <div className="grid mb-8 ">
+            <div className="grid gap-2">
+                <div className="flex items-top gap-2">
+                    {user.profilePicture ? (
+                        <img
+                            src={user.profilePicture}
+                            alt={user.username}
+                            className="w-8 h-8 object-cover rounded-full"
+                        />
+                    ) : (
+                        <AccountCircleIcon className="w-8 h-8" />
+                    )}
+                    <div>
+                        <p className="font-medium text-sm">{user.username}</p>
+                        <div className="text-sm text-gray-600">
+                            {comment.comment.map((c) => parseCommentText(c.text))}
+                        </div>
+                    </div>
+                </div>
+                <div className="flex mr-8 gap-4 items-center">
+                    <div className="text-sm text-gray-500">
+                        ردود ({replyCount || 0})
+                    </div>
+                    <div className="text-sm text-gray-500">
+                        {new Date(parseInt(date)).toLocaleString('ar-EG')}
+                    </div>
+                    <div className="flex gap-2">
                         {reactions.map((reaction, index) => (
-                            <Typography key={index} variant="caption">{reaction}</Typography>
+                            <span key={index} className="text-sm text-gray-500">{reaction}</span>
                         ))}
-                    </Box>
-                </Box>
-            </CardContent>
-        </Card>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 };
 
